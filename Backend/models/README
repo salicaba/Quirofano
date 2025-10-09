@@ -1,0 +1,9 @@
+Representar la estructura de tus datos y ser la única capa que se comunica directamente con la base de datos.
+
+¿Qué va aquí?
+
+La definición del esquema de tus datos (ej: un "paciente" tiene nombre, edad, historial, etc.).
+
+Toda la lógica para Crear, Leer, Actualizar y Borrar (CRUD) datos en la base de datos.
+
+Lógica de negocio directamente relacionada con los datos (ej: un método para calcular la edad de un paciente a partir de su fecha de nacimiento).

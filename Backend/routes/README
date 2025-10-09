@@ -1,0 +1,5 @@
+ Definir los puntos de entrada (endpoints) de tu API. Su única tarea es recibir una petición HTTP (GET, POST, PUT, DELETE) y pasarle el control al controller adecuado.
+
+¿Qué va aquí? Las definiciones de las URL de tu aplicación.
+
+¿Qué NO va aquí? Lógica de negocio, acceso a la base de datos, validaciones complejas.

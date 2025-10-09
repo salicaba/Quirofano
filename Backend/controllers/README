@@ -1,0 +1,11 @@
+ Actuar como el intermediario entre las rutas (lo que pide el usuario) y los modelos (los datos).
+
+¿Qué va aquí?
+
+Recibir los datos de la petición (req.body, req.params).
+
+Validar que los datos recibidos sean correctos y completos.
+
+Llamar a las funciones del modelo correspondiente para leer o escribir en la base de datos.
+
+Manejar la respuesta que se enviará al cliente (éxito con datos, error, etc.).

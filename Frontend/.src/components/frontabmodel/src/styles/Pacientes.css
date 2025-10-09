@@ -1,0 +1,104 @@
+.pacientes-container {
+  width: 100%;
+}
+
+/* --- ESTILOS NUEVOS PARA LAS COLUMNAS --- */
+.pacientes-content-layout {
+  display: flex;
+  gap: 30px; /* Espacio entre las columnas */
+  align-items: flex-start; /* Alinea los items arriba */
+}
+
+/* El formulario ahora es flexible */
+.form-paciente {
+  flex: 1; /* Ocupa 1 parte del espacio */
+  max-width: 400px; /* Le damos un ancho máximo */
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 0; /* Ya no necesita margen inferior */
+}
+
+/* Creamos un contenedor para la lista */
+.lista-pacientes-container {
+  flex: 2; /* Ocupa 2 partes del espacio (más grande que el form) */
+}
+
+.lista-pacientes-container h3 {
+  margin-top: 0;
+}
+/* --- FIN DE ESTILOS NUEVOS --- */
+
+.form-paciente h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.btn-agregar {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #28a745;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-agregar:hover {
+  background-color: #218838;
+}
+
+.lista-pacientes {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.paciente-card {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.paciente-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.paciente-card h3 {
+  margin: 0 0 10px 0;
+  color: #007bff;
+}
+
+.paciente-card p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #495057;
+}

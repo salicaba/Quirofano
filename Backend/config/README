@@ -1,0 +1,2 @@
+Aquí guardas la configuración de la aplicación, como la conexión a la base de datos, puertos, etc. 
+La idea es que si cambias de base de datos, solo tengas que modificar un archivo en esta carpeta.
