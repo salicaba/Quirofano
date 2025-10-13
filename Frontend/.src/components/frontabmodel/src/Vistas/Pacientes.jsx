@@ -1,73 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import '../styles/Pacientes.css';
 import { exportarPacientesPDF, exportarPacienteIndividualPDF } from '../utils/ExportarPDF';
 
-const Pacientes = () => {
-  const [pacientes, setPacientes] = useState([
-    { 
-      id_paciente: 1, 
-      nombre: 'Juan', 
-      apellido: 'Pérez', 
-      sexo: 'masculino',
-      fecha_nacimiento: '1980-05-15',
-      tipo_sangre: 'O+',
-      procedencia: 'Referido por Dr. Rodríguez'
-    },
-    { 
-      id_paciente: 2, 
-      nombre: 'Ana', 
-      apellido: 'Gómez', 
-      sexo: 'femenino',
-      fecha_nacimiento: '1992-11-20',
-      tipo_sangre: 'A-',
-      procedencia: 'Emergencia'
-    }
-  ]);
-
-  const [formState, setFormState] = useState({ 
-    nombre: '', 
-    apellido: '', 
-    sexo: '', 
-    fecha_nacimiento: '', 
+const Pacientes = () => { 
+  const [nuevoPaciente, setNuevoPaciente] = useState({
+    nombre: '',
+    apellido: '',
+    fecha_nacimiento: '',
+    sexo: '',
     tipo_sangre: '',
-    procedencia: ''  // NUEVO CAMPO
+    procedencia: '',
+    numero_expediente: ''
   });
-
+  
+  const [pacientes, setPacientes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [editando, setEditando] = useState(false);
   const [formEditState, setFormEditState] = useState({});
 
-  const handleInputChange = (evento) => {
-    const { name, value } = evento.target;
-    setFormState({ ...formState, [name]: value });
+  const API_URL = 'http://localhost:4001/api/pacientes';
+
+  const cargarPacientes = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(API_URL);
+      
+      console.log('🔍 DEBUG - Datos recibidos del backend:', response.data);
+      
+      const listaPacientes = Array.isArray(response.data) ? response.data : [];
+      setPacientes(listaPacientes);
+      setError(null);
+    } catch (err) {
+      setError('Error al cargar los pacientes.');
+      console.error('Error en GET /pacientes:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditInputChange = (evento) => {
-    const { name, value } = evento.target;
+  useEffect(() => {
+    cargarPacientes();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNuevoPaciente(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
     setFormEditState({ ...formEditState, [name]: value });
   };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-  const handleSubmit = (evento) => {
-    evento.preventDefault();
-    const nuevoPaciente = { 
-      id_paciente: Date.now(), 
-      nombre: formState.nombre,
-      apellido: formState.apellido,
-      sexo: formState.sexo,
-      fecha_nacimiento: formState.fecha_nacimiento,
-      tipo_sangre: formState.tipo_sangre,
-      procedencia: formState.procedencia  // NUEVO CAMPO
-    };
-    setPacientes([...pacientes, nuevoPaciente]);
-    setFormState({ 
-      nombre: '', 
-      apellido: '', 
-      sexo: '', 
-      fecha_nacimiento: '', 
-      tipo_sangre: '',
-      procedencia: ''  // NUEVO CAMPO
-    });
+    if (!nuevoPaciente.nombre || !nuevoPaciente.tipo_sangre) {
+      setError('El Nombre y Tipo de sangre son obligatorios');
+      return;
+    }
+
+    try {
+      await axios.post(API_URL, nuevoPaciente);
+
+      alert('¡Paciente registrado con éxito!');
+      setNuevoPaciente({
+        nombre: '', apellido: '', fecha_nacimiento: '',
+        sexo: '', tipo_sangre: '', procedencia: '', numero_expediente: ''
+      });
+
+      cargarPacientes();
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Error al registrar el paciente.');
+      console.error('Error en POST /pacientes:', err);
+    }
   };
+
 
   const handleVerDetalles = (paciente) => {
     setPacienteSeleccionado(paciente);
@@ -79,11 +94,18 @@ const Pacientes = () => {
     setEditando(false);
   };
 
-  const handleEliminar = (idAEliminar) => {
-    const nuevaLista = pacientes.filter(pac => pac.id_paciente !== idAEliminar);
-    setPacientes(nuevaLista);
-    setPacienteSeleccionado(null);
-    setEditando(false);
+  const handleEliminar = async (idAEliminar) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este paciente?')) {
+      try {
+        await axios.delete(`${API_URL}/${idAEliminar}`);
+        alert('Paciente eliminado correctamente');
+        cargarPacientes();
+        setPacienteSeleccionado(null);
+      } catch (err) {
+        setError('Error al eliminar el paciente.');
+        console.error('Error en DELETE /pacientes:', err);
+      }
+    }
   };
 
   const handleEditar = () => {
@@ -91,16 +113,18 @@ const Pacientes = () => {
     setEditando(true);
   };
 
-  const handleGuardarEdicion = (evento) => {
-    evento.preventDefault();
-    const pacientesActualizados = pacientes.map(pac => 
-      pac.id_paciente === pacienteSeleccionado.id_paciente 
-        ? { ...formEditState, id_paciente: pacienteSeleccionado.id_paciente }
-        : pac
-    );
-    setPacientes(pacientesActualizados);
-    setPacienteSeleccionado(formEditState);
-    setEditando(false);
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${API_URL}/${pacienteSeleccionado.id_paciente}`, formEditState);
+      alert('¡Paciente actualizado con éxito!');
+      setPacienteSeleccionado(formEditState);
+      setEditando(false);
+      cargarPacientes();
+    } catch (err) {
+      setError('Error al actualizar el paciente.');
+      console.error('Error en PUT /pacientes:', err);
+    }
   };
 
   const handleCancelarEdicion = () => {
@@ -130,6 +154,7 @@ const Pacientes = () => {
                   value={formEditState.nombre || ''} 
                   onChange={handleEditInputChange} 
                   placeholder="Nombre" 
+                  required
                 />
               </div>
               <div className="form-group">
@@ -155,13 +180,13 @@ const Pacientes = () => {
                 <label>Sexo:</label>
                 <select name="sexo" value={formEditState.sexo || ''} onChange={handleEditInputChange}>
                   <option value="">Seleccionar sexo</option>
-                  <option value="masculino">Masculino</option>
-                  <option value="femenino">Femenino</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
                 </select>
               </div>
               <div className="form-group">
                 <label>Tipo de Sangre:</label>
-                <select name="tipo_sangre" value={formEditState.tipo_sangre || ''} onChange={handleEditInputChange}>
+                <select name="tipo_sangre" value={formEditState.tipo_sangre || ''} onChange={handleEditInputChange} required>
                   <option value="">Seleccionar tipo</option>
                   <option value="O+">O+</option>
                   <option value="O-">O-</option>
@@ -173,7 +198,16 @@ const Pacientes = () => {
                   <option value="AB-">AB-</option>
                 </select>
               </div>
-              {/* NUEVO CAMPO - PROCEDENCIA */}
+              <div className="form-group">
+                <label>N° de Expediente:</label>
+                <input 
+                  type="text" 
+                  name="numero_expediente" 
+                  value={formEditState.numero_expediente || ''} 
+                  onChange={handleEditInputChange} 
+                  placeholder="Ej: EXP-2025-001" 
+                />
+              </div>
               <div className="form-group">
                 <label>Procedencia:</label>
                 <input 
@@ -181,7 +215,7 @@ const Pacientes = () => {
                   name="procedencia" 
                   value={formEditState.procedencia || ''} 
                   onChange={handleEditInputChange} 
-                  placeholder="Ej: Referido por Dr. García, Emergencia, etc." 
+                  placeholder="Ej: Departamento Cardiología" 
                 />
               </div>
               <div className="form-actions-editar">
@@ -214,7 +248,7 @@ const Pacientes = () => {
           <div className="paciente-card-detalle">
             <div className="paciente-header">
               <div className="paciente-avatar">
-                {pacienteSeleccionado.nombre.charAt(0)}
+                {pacienteSeleccionado.nombre?.charAt(0)}
               </div>
               <h3>{pacienteSeleccionado.nombre} {pacienteSeleccionado.apellido}</h3>
               <span className="paciente-id">ID: {pacienteSeleccionado.id_paciente}</span>
@@ -223,17 +257,20 @@ const Pacientes = () => {
             <div className="paciente-datos">
               <div className="dato-item">
                 <label>Fecha de Nacimiento</label>
-                <span>{pacienteSeleccionado.fecha_nacimiento}</span>
+                <span>{pacienteSeleccionado.fecha_nacimiento || 'No especificada'}</span>
               </div>
               <div className="dato-item">
                 <label>Sexo</label>
-                <span>{pacienteSeleccionado.sexo}</span>
+                <span>{pacienteSeleccionado.sexo || 'No especificado'}</span>
               </div>
               <div className="dato-item">
                 <label>Tipo de Sangre</label>
-                <span>{pacienteSeleccionado.tipo_sangre}</span>
+                <span>{pacienteSeleccionado.tipo_sangre || 'No especificado'}</span>
               </div>
-              {/* NUEVO CAMPO EN DETALLES */}
+              <div className="dato-item">
+                <label>N° de Expediente</label>
+                <span>{pacienteSeleccionado.numero_expediente || 'No especificado'}</span>
+              </div>
               <div className="dato-item">
                 <label>Procedencia</label>
                 <span>{pacienteSeleccionado.procedencia || 'No especificada'}</span>
@@ -267,10 +304,14 @@ const Pacientes = () => {
     );
   }
 
-  // VISTA: FORMULARIO + LISTA COMPACTA
+  if (loading) return <div className="loading">Cargando Pacientes...</div>;
+
+  // VISTA PRINCIPAL: FORMULARIO + LISTA COMPACTA
   return (
     <div className="pacientes-container">
       <h2>Gestión de Pacientes</h2>
+      
+      {error && <div className="error-message">{error}</div>}
       
       <div className="pacientes-content-layout">
         <div className="form-paciente">
@@ -278,27 +319,45 @@ const Pacientes = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Nombre:</label>
-              <input type="text" name="nombre" value={formState.nombre} onChange={handleInputChange} placeholder="Nombre" />
+              <input 
+                type="text" 
+                name="nombre" 
+                value={nuevoPaciente.nombre} 
+                onChange={handleInputChange} 
+                placeholder="Nombre" 
+                required
+              />
             </div>
             <div className="form-group">
               <label>Apellido:</label>
-              <input type="text" name="apellido" value={formState.apellido} onChange={handleInputChange} placeholder="Apellido" />
+              <input 
+                type="text" 
+                name="apellido" 
+                value={nuevoPaciente.apellido} 
+                onChange={handleInputChange} 
+                placeholder="Apellido" 
+              />
             </div>
             <div className="form-group">
               <label>Fecha de Nacimiento:</label>
-              <input type="date" name="fecha_nacimiento" value={formState.fecha_nacimiento} onChange={handleInputChange} />
+              <input 
+                type="date" 
+                name="fecha_nacimiento" 
+                value={nuevoPaciente.fecha_nacimiento} 
+                onChange={handleInputChange} 
+              />
             </div>
             <div className="form-group">
               <label>Sexo:</label>
-              <select name="sexo" value={formState.sexo} onChange={handleInputChange}>
+              <select name="sexo" value={nuevoPaciente.sexo} onChange={handleInputChange}>
                 <option value="">Seleccionar sexo</option>
-                <option value="masculino">Masculino</option>
-                <option value="femenino">Femenino</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
               </select>
             </div>
             <div className="form-group">
               <label>Tipo de Sangre:</label>
-              <select name="tipo_sangre" value={formState.tipo_sangre} onChange={handleInputChange}>
+              <select name="tipo_sangre" value={nuevoPaciente.tipo_sangre} onChange={handleInputChange} required>
                 <option value="">Seleccionar tipo</option>
                 <option value="O+">O+</option>
                 <option value="O-">O-</option>
@@ -310,17 +369,27 @@ const Pacientes = () => {
                 <option value="AB-">AB-</option>
               </select>
             </div>
-            {/* NUEVO CAMPO - PROCEDENCIA */}
+            <div className="form-group">
+              <label>N° de Expediente:</label>
+              <input 
+                type="text" 
+                name="numero_expediente" 
+                value={nuevoPaciente.numero_expediente}
+                onChange={handleInputChange} 
+                placeholder="Ej: EXP-2025-001" 
+              />
+            </div>
             <div className="form-group">
               <label>Procedencia:</label>
               <input 
                 type="text" 
                 name="procedencia" 
-                value={formState.procedencia} 
+                value={nuevoPaciente.procedencia}
                 onChange={handleInputChange} 
-                placeholder="Ej: Referido por Dr. García, Emergencia, etc." 
+                placeholder="Ej: Departamento Cardiología" 
               />
             </div>
+            
             <button type="submit" className="btn-agregar">Registrar Paciente</button>
           </form>
         </div>
@@ -336,20 +405,33 @@ const Pacientes = () => {
               📥 Exportar a PDF
             </button>
           </div>
+          
           <div className="lista-pacientes-compacta">
-            {pacientes.map(paciente => (
-              <div 
-                key={paciente.id_paciente} 
-                className="paciente-item-compacto"
-                onClick={() => handleVerDetalles(paciente)}
-              >
-                <div className="paciente-info-compacta">
-                  <h4>{paciente.nombre} {paciente.apellido}</h4>
-                  <span className="paciente-id">ID: {paciente.id_paciente}</span>
-                </div>
-                <div className="flecha-derecha">➡️</div>
+            {pacientes.length === 0 ? (
+              <div className="no-pacientes">
+                <p>No hay pacientes registrados</p>
               </div>
-            ))}
+            ) : (
+              pacientes.map((paciente, index) => (
+                <div 
+                  key={paciente.id_paciente} 
+                  className="paciente-item-compacto"
+                  onClick={() => handleVerDetalles(paciente)}
+                >
+                  <div className="paciente-info-compacta">
+                    <h4>{paciente.nombre} {paciente.apellido}</h4>
+                    <div className="paciente-detalles-compactos">
+                      <span className="paciente-sexo">| {paciente.sexo} |</span>
+                      <span className="paciente-tipo-sangre"> {paciente.tipo_sangre} |</span>
+                      {paciente.numero_expediente && (
+                        <span className="paciente-expediente"> {paciente.numero_expediente} |</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flecha-derecha">➡️</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

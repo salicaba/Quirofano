@@ -1,10 +1,26 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+// 1. Importa NavLink en lugar de Link y quita useLocation
+import { NavLink } from 'react-router-dom';
 import '../styles/Header.css';
 
 const Header = ({ user, onLogout }) => {
-  const location = useLocation();
-  const esAdmin = user?.rol === 'admin';
+
+  // 2. Guarda de seguridad para evitar errores si 'user' es nulo
+  // Si no hay usuario, muestra una versión mínima del header.
+  if (!user) {
+    return (
+      <header className="app-header">
+        <div className="header-left">
+          <h1 className="app-title">Hospital ADMODEL</h1>
+        </div>
+      </header>
+    );
+  }
+
+  // 3. Variables claras para verificar los roles (insensible a mayúsculas)
+  const userRole = user.roles ? user.roles.toLowerCase() : '';
+  const isAdmin = userRole === 'admin';
+  const isEspecialista = userRole === 'especialista'; // O 'espacialista' si tienes un typo en la BD
 
   return (
     <header className="app-header">
@@ -13,35 +29,26 @@ const Header = ({ user, onLogout }) => {
       </div>
       
       <nav className="header-nav">
-        <Link to="/pacientes" className={location.pathname === '/pacientes' ? 'nav-button active' : 'nav-button'}>
-          Pacientes
-        </Link>
-        
-        {/* Especialistas - Solo Admin */}
-        {esAdmin && (
-          <Link to="/especialistas" className={location.pathname === '/especialistas' ? 'nav-button active' : 'nav-button'}>
-            Especialistas
-          </Link>
+        {/* --- ENLACES PARA EL ROL DE ADMIN --- */}
+        {isAdmin && (
+          <>
+            <NavLink to="/pacientes" className="nav-button">Pacientes</NavLink>
+            <NavLink to="/especialistas" className="nav-button">Especialistas</NavLink>
+            <NavLink to="/quirofanos" className="nav-button">Quirófanos</NavLink>
+            <NavLink to="/equipo-medico" className="nav-button">Equipo Médico</NavLink>
+            <NavLink to="/horarios" className="nav-button">Horarios</NavLink>
+            <NavLink to="/cirugias" className="nav-button">Cirugías</NavLink>
+          </>
         )}
         
-        {/* Quirófanos - Solo Admin */}
-        {esAdmin && (
-          <Link to="/quirofanos" className={location.pathname === '/quirofanos' ? 'nav-button active' : 'nav-button'}>
-           Quirófanos
-          </Link>
+        {/* --- ENLACES PARA EL ROL DE ESPECIALISTA --- */}
+        {isEspecialista && (
+          <>
+            <NavLink to="/pacientes" className="nav-button">Pacientes</NavLink>
+            <NavLink to="/citas" className="nav-button">Citas</NavLink>
+            <NavLink to="/horarios" className="nav-button">Mis Horarios</NavLink>
+          </>
         )}
-        
-        {/* Equipo Médico - Ambos roles */}
-        <Link to="/equipo-medico" className={location.pathname === '/equipo-medico' ? 'nav-button active' : 'nav-button'}>
-          Equipo Médico
-        </Link>
-        
-        <Link to="/horarios" className={location.pathname === '/horarios' ? 'nav-button active' : 'nav-button'}>
-          Horarios
-        </Link>
-        <Link to="/cirugias" className={location.pathname === '/cirugias' ? 'nav-button active' : 'nav-button'}>
-          Cirugías
-        </Link>
       </nav>
     </header>
   );

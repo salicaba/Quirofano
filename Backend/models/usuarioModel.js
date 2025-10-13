@@ -22,7 +22,7 @@ const Usuario = {
         mu.cedula_profecional,
         mu.foto_perfil, 
         r.descripcion AS roles, 
-        e.descripcion AS especialidades
+        e.descripcion AS especialidad
       FROM 
         medicos_usuarios mu
       LEFT JOIN roles r ON mu.id_rol = r.id_rol

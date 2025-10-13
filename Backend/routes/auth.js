@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authControllers');
+const authController = require('../controllers/authController');
 // Se importan ambas funciones del middleware
 const { protegerRuta, verificarRol } = require('../middleware/authMiddleware');
 

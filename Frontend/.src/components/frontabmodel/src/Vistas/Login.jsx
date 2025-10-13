@@ -1,8 +1,9 @@
-import React, { useState } from 'react'; // CORRECCIÓN: Se agrega 'React' para seguir buenas prácticas.
+import React, { useState } from 'react';
 import axios from 'axios';
 import '../styles/Login.css';
 
 const Login = ({ onLogin }) => {
+  // console.log('La función onLogin recibida es:', onLogin); // Ya confirmamos que esto funciona
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -10,30 +11,18 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (evento) => {
     evento.preventDefault();
     setError('');
-
-    if(!cedula || !password){
-      setError('Por favor, ingrese la cédula y contraseña.');
-      return;
-    }
-
     try {
-      // CORRECCIÓN 2: La URL tenía 'htttp' y '/3000'. Se corrigió a 'http' y ':3000'.
       const response = await axios.post('http://localhost:4001/api/auth/login', {
         cedula: cedula,
         password: password
       });
-
-      // CORRECCIÓN 3: La variable estaba mal escrita como 'respose'. Se corrigió a 'response'.
+      console.log('1. Login exitoso. Enviando token a App.jsx:', response.data);
       onLogin(response.data);
-
     } catch (err) {
-      setError('Cédula o contraseña incorrectas. Por favor, intenta de nuevo.');
+      setError('Cédula o contraseña incorrectas.');
       console.error('Error de autenticación:', err);
     }
-  }; // <-- La función handleSubmit se cierra aquí.
-
-  // CORRECCIÓN 1: Se eliminó la llave de cierre '};' que estaba aquí y rompía el componente.
-
+  };
   return (
     <div className="login-container">
       <div className="login-box">

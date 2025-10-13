@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 // ▼▼▼ EDITA ESTA LISTA CON TUS USUARIOS Y LAS CONTRASEÑAS QUE QUIERAS ASIGNAR ▼▼▼
 const usuariosAActualizar = [
   { cedula: '123456789', passwordPlano: 'PasswordParaErick123' },
-  { cedula: '987654321', passwordPlano: 'PasswordParaJose456' }
   // Agrega más usuarios aquí si es necesario
 ];
 // ▲▲▲ FIN DE LA ZONA DE EDICIÓN ▲▲▲
@@ -23,7 +22,7 @@ const hashearYActualizar = async () => {
       const passwordHash = await bcrypt.hash(usuario.passwordPlano, salt);
 
       // 2. Actualizar la base de datos con el hash
-      const query = 'UPDATE medicos_usuarios SET password = $1 WHERE cedula_profecional = $2';
+      const query = 'UPDATE medicos_usuarios SET password = $1 WHERE cedula_profecional = $2 ';
       await pool.query(query, [passwordHash, usuario.cedula]);
 
       console.log(`✅ Contraseña para ${usuario.cedula} actualizada exitosamente.`);
