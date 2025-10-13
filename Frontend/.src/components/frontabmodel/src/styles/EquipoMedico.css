@@ -1,4 +1,4 @@
-/* Pacientes.css */
+/* ESTILOS GENERALES */
 .pacientes-container {
   padding: 20px;
   background: #f0f2f5;
@@ -111,7 +111,7 @@
   background: #f8f9fa;
   padding: 15px 20px;
   border-radius: 6px;
-  border-left: 4px solid #e74c3c;
+  border-left: 4px solid #3498db;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -133,8 +133,27 @@
   font-weight: bold;
 }
 
-.paciente-id {
+.paciente-info-compacta p {
+  margin: 4px 0;
   color: #7f8c8d;
+  font-size: 14px;
+}
+
+.estado.disponible {
+  color: #27ae60;
+  font-weight: 600;
+  background: rgba(39, 174, 96, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.estado.mantenimiento {
+  color: #f39c12;
+  font-weight: 600;
+  background: rgba(243, 156, 18, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
   font-size: 12px;
 }
 
@@ -143,10 +162,10 @@
   font-size: 16px;
 }
 
-/* VISTA DETALLES - DISEÑO BONITO */
+/* VISTA DETALLES */
 .detalles-paciente-container {
   padding: 30px;
-  background: linear-gradient(135deg, #0a28adff 0%, #0f42daff 100%);
+  background: linear-gradient(135deg, rgb(245, 245, 247) 0%, rgb(241, 241, 243) 100%);
   min-height: 100vh;
 }
 
@@ -211,17 +230,15 @@
 .paciente-avatar {
   width: 100px;
   height: 100px;
-  background: linear-gradient(135deg, #0a27a7ff, #190ccdff);
+  background: linear-gradient(135deg, #3498db, #2980b9);
   border-radius: 50%;
   margin: 0 auto 20px auto;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36px;
-  color: white;
-  font-weight: bold;
   border: 4px solid white;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
 }
 
 .paciente-header h3 {
@@ -277,13 +294,30 @@
   font-weight: 500;
 }
 
-.estado-activo {
-  color: #27ae60 !important;
-  font-weight: 700;
-  background: rgba(39, 174, 96, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
+.especialistas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.especialista-tag-completo {
+  background: #3498db;
+  color: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nombre-tag {
+  font-weight: 600;
   font-size: 14px;
+}
+
+.cedula-tag {
+  font-size: 12px;
+  opacity: 0.9;
 }
 
 .detalles-actions {
@@ -291,6 +325,27 @@
   gap: 20px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.btn-especialistas {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  padding: 16px 25px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+}
+
+.btn-especialistas:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
 }
 
 .btn-editar {
@@ -410,53 +465,264 @@
   box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
 }
 
-/* Botones de Exportación */
-.header-lista {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+/* GESTIÓN MEJORADA DE ESPECIALISTAS */
+.gestion-especialistas-container {
+  padding: 20px;
+  background: #f0f2f5;
+  min-height: 100vh;
 }
 
-.btn-exportar {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+.gestion-mejorada {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+}
+
+/* FORMULARIO MEJORADO */
+.form-agregar-mejorado {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.form-agregar-mejorado h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.campos-especialista {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 15px;
+  align-items: end;
+}
+
+.campo-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo-group label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,0.9);
+}
+
+.campo-group input {
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  background: rgba(255,255,255,0.95);
+  transition: all 0.3s ease;
+}
+
+.campo-group input:focus {
+  outline: none;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+}
+
+.btn-agregar-especialista {
+  background: #27ae60;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 12px 20px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
-.btn-exportar:hover:not(:disabled) {
+.btn-agregar-especialista:hover:not(:disabled) {
+  background: #229954;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
-.btn-exportar:disabled {
-  background: #bdc3c7;
+.btn-agregar-especialista:disabled {
+  background: #95a5a6;
   cursor: not-allowed;
+  transform: none;
 }
 
-.btn-exportar-individual {
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+/* LISTA MEJORADA */
+.lista-especialistas-mejorada {
+  margin-bottom: 30px;
+}
+
+.header-lista-especialistas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.header-lista-especialistas h3 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 20px;
+}
+
+.contador {
+  background: #3498db;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lista-mejorada {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-especialista-mejorado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.item-especialista-mejorado:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.info-especialista {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.avatar-especialista {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+}
+
+.datos-especialista h4 {
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cedula-especialista {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.btn-eliminar-especialista {
+  background: #e74c3c;
   color: white;
   border: none;
-  padding: 16px 25px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
-  font-weight: 600;
   font-size: 16px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+  justify-content: center;
 }
 
-.btn-exportar-individual:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
+.btn-eliminar-especialista:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+/* ESTADO VACÍO MEJORADO */
+.sin-especialistas-mejorado {
+  text-align: center;
+  padding: 50px 30px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 2px dashed #bdc3c7;
+}
+
+.sin-especialistas-mejorado .icono-vacio {
+  font-size: 48px;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.sin-especialistas-mejorado p {
+  color: #7f8c8d;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.sin-especialistas-mejorado small {
+  color: #95a5a6;
+  font-size: 12px;
+}
+
+/* BOTONES MEJORADOS */
+.gestion-actions-mejoradas {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.btn-guardar-mejorado {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  border: none;
+  padding: 15px 35px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.btn-guardar-mejorado:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+}
+
+.btn-cancelar-mejorado {
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.btn-cancelar-mejorado:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
 }

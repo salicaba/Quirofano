@@ -1,115 +1,368 @@
+/* ESPECIALISTAS.CSS */
 .especialistas-container {
-  width: 100%;
+  padding: 20px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.especialistas-container h2 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 24px;
 }
 
 .especialistas-content-layout {
-  display: flex;
-  gap: 30px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 25px;
+  align-items: start;
 }
 
+/* FORMULARIO IZQUIERDO */
 .form-especialista {
-  flex: 1;
-  max-width: 400px;
-  background-color: #ffffff;
-  padding: 20px;
+  background: white;
+  padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
 }
 
-.lista-especialistas-container {
-  flex: 2;
-}
-
-.form-especialista h3, .lista-especialistas-container h3 {
-  margin-top: 0;
+.form-especialista h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   font-weight: bold;
+  color: #2c3e50;
+  font-size: 13px;
 }
 
-.form-group input {
+.form-group input, .form-group select {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
+  padding: 10px 12px;
+  border: 1px solid #bdc3c7;
   border-radius: 4px;
-  box-sizing: border-box;
+  font-size: 14px;
+  background: #fafafa;
 }
 
-.btn-agregar, .btn-cancelar {
-  width: 100%;
-  padding: 10px;
-  border: none;
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+  background: white;
+}
+
+/* COMBOBOX CON BOTÓN */
+.form-group-combobox {
+  margin-bottom: 18px;
+}
+
+.form-group-combobox label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+.combobox-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.combobox-container select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #bdc3c7;
   border-radius: 4px;
+  font-size: 14px;
+  background: #fafafa;
+}
+
+.btn-agregar-opcion {
+  background: #3498db;
   color: white;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 4px;
+  cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  cursor: pointer;
-  margin-top: 10px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.btn-agregar { background-color: #28a745; }
-.btn-cancelar { background-color: #6c757d; }
+.btn-agregar-opcion:hover {
+  background: #2980b9;
+  transform: scale(1.1);
+}
 
-.lista-especialistas {
+/* BOTONES FORMULARIO */
+.form-actions {
+  display: flex;
+  gap: 10px;
   margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+}
+
+.btn-agregar {
+  background: #27ae60;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  flex: 1;
+  font-size: 14px;
+}
+
+.btn-agregar:hover {
+  background: #229954;
+}
+
+.btn-cancelar {
+  background: #95a5a6;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.btn-cancelar:hover {
+  background: #7f8c8d;
+}
+
+/* LISTADO DERECHO */
+.lista-especialistas-container {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+}
+
+.header-lista {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-lista h3 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.contador-especialistas {
+  background: #3498db;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* LISTA DE ESPECIALISTAS */
+.lista-especialistas {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .especialista-card {
-  background-color: #ffffff;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
+  background: #f8f9fa;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
 }
 
-.especialista-card h3 {
-  margin: 0 0 10px 0;
-  color: #007bff;
+.especialista-card:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.especialista-card p {
-  margin: 5px 0;
+.especialista-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.especialista-avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.especialista-info h4 {
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.especialista-datos {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.especialista-datos strong {
+  color: #2c3e50;
 }
 
 .card-actions {
-  margin-top: 15px;
   display: flex;
   gap: 10px;
+  justify-content: flex-end;
 }
 
-.card-actions button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
+.btn-editar {
+  background: #f39c12;
   color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
 }
 
-.card-actions button:first-of-type {
-  background-color: #ffc107;
-  color: #212529;
+.btn-editar:hover {
+  background: #e67e22;
 }
 
-.card-actions button:last-of-type {
-  background-color: #dc3545;
+.btn-eliminar {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
 }
 
+.btn-eliminar:hover {
+  background: #c0392b;
+}
+
+/* ESTADO VACÍO */
 .lista-vacia {
   text-align: center;
-  padding: 40px;
-  color: #888;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
+  padding: 40px 20px;
+  color: #7f8c8d;
+}
+
+.lista-vacia p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* MODALES */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-especialidad {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  padding: 25px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
   margin-top: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .especialistas-content-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .combobox-container {
+    flex-direction: column;
+  }
+  
+  .btn-agregar-opcion {
+    width: 100%;
+    height: 40px;
+  }
 }

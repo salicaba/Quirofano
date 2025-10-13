@@ -1,0 +1,145 @@
+/* EmergenciaModal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.emergencia-modal {
+  background: white;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 20px;
+  border-radius: 15px 15px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.emergencia-form {
+  padding: 25px;
+}
+
+.emergencia-form .form-group {
+  margin-bottom: 20px;
+}
+
+.emergencia-form .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.emergencia-form .form-group input,
+.emergencia-form .form-group select,
+.emergencia-form .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.emergencia-form .form-group input:focus,
+.emergencia-form .form-group select:focus,
+.emergencia-form .form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.urgencia-options {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
+}
+
+.urgencia-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.urgencia-option input {
+  margin-right: 6px;
+}
+
+.urgencia-alta {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.urgencia-media {
+  color: #f39c12;
+  font-weight: 600;
+}
+
+.urgencia-baja {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+.btn-cancelar {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-cancelar:hover {
+  background: #7f8c8d;
+}
+
+.btn-confirmar {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-confirmar:hover {
+  background: #c0392b;
+}

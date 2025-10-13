@@ -1,0 +1,86 @@
+.quirofanos-container {
+  padding: 20px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.quirofanos-container h2 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+.quirofanos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.quirofano-card {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-left: 4px solid #3498db;
+}
+
+.quirofano-card.disponible {
+  border-left-color: #27ae60;
+}
+
+.quirofano-card.ocupado {
+  border-left-color: #e74c3c;
+}
+
+.quirofano-card.mantenimiento {
+  border-left-color: #f39c12;
+}
+
+.quirofano-card h3 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.estado {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.estado.disponible {
+  color: #27ae60;
+}
+
+.estado.ocupado {
+  color: #e74c3c;
+}
+
+.estado.mantenimiento {
+  color: #f39c12;
+}
+
+.equipamiento {
+  color: #7f8c8d;
+  margin-bottom: 15px;
+}
+
+.quirofano-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.quirofano-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.quirofano-actions button:first-child {
+  background: #3498db;
+  color: white;
+}
+
+.quirofano-actions button:last-child {
+  background: #95a5a6;
+  color: white;
+}

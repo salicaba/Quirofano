@@ -1,17 +1,24 @@
-.app-layout {
+/* Layout.css */
+.layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-.app-body {
+.layout-body {
   display: flex;
   flex: 1;
   overflow: hidden;
 }
 
-.app-content {
+.layout-content {
   flex: 1;
   padding: 20px;
+  background-color: #f5f6fa;
   overflow-y: auto;
+}
+
+.layout-content.expanded {
+  margin-left: 0;
+  width: 100%;
 }

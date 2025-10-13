@@ -1,36 +1,82 @@
 import React, { useState } from 'react';
-import '../styles/Especialistas.css'; // Importamos el CSS renombrado
+import '../styles/Especialistas.css';
 
 const Especialistas = () => {
-  // Cambiamos 'medicos' por 'especialistas'
+  // Datos iniciales mock
   const [especialistas, setEspecialistas] = useState([
-    { id: 1, nombre: 'Dr. Carlos', apellido: 'García', especialidad: 'Cardiología' },
+    { 
+      id: 1, 
+      nombre: 'Carlos', 
+      apellido: 'García', 
+      cedula: '12345678', 
+      telefono: '555-1234',
+      especialidad: 'Cardiología',
+      rol: 'Especialista',
+      password: 'password123'
+    }
   ]);
 
-  // El resto de la lógica no necesita cambiar...
-  const [formState, setFormState] = useState({ nombre: '', apellido: '', especialidad: '' });
-  const [isEditing, setIsEditing] = useState(null);
+  // Listas de opciones
+  const [roles, setRoles] = useState(['Administrador', 'Especialista', 'Enfermero']);
+  const [especialidades, setEspecialidades] = useState(['Cardiología', 'Traumatología', 'Pediatría', 'Cirugía']);
 
-  const handleInputChange = (evento) => {
-    const { name, value } = evento.target;
-    setFormState({ ...formState, [name]: value });
+  // Estados para formularios
+  const [formState, setFormState] = useState({
+    nombre: '',
+    apellido: '',
+    cedula: '',
+    telefono: '',
+    especialidad: '',
+    rol: '',
+    password: ''
+  });
+
+  const [isEditing, setIsEditing] = useState(null);
+  const [showModalRol, setShowModalRol] = useState(false);
+  const [showModalEspecialidad, setShowModalEspecialidad] = useState(false);
+  const [nuevoRol, setNuevoRol] = useState('');
+  const [nuevaEspecialidad, setNuevaEspecialidad] = useState('');
+
+  // 🔄 MANEJADORES PRINCIPALES
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormState(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleSubmit = (evento) => {
-    evento.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
     if (isEditing) {
+      // Editar especialista existente
       const listaActualizada = especialistas.map(esp => 
         esp.id === isEditing ? { ...formState, id: isEditing } : esp
       );
       setEspecialistas(listaActualizada);
       setIsEditing(null);
     } else {
-      const nuevoEspecialista = { id: Date.now(), ...formState };
+      // Crear nuevo especialista
+      const nuevoEspecialista = { 
+        id: Date.now(), 
+        ...formState 
+      };
       setEspecialistas([...especialistas, nuevoEspecialista]);
     }
-    setFormState({ nombre: '', apellido: '', especialidad: '' });
+    
+    // Reset form
+    setFormState({
+      nombre: '',
+      apellido: '',
+      cedula: '',
+      telefono: '',
+      especialidad: '',
+      rol: '',
+      password: ''
+    });
   };
-  
+
   const handleEditar = (idAEditar) => {
     const especialistaAEditar = especialistas.find(esp => esp.id === idAEditar);
     if (especialistaAEditar) {
@@ -45,46 +91,201 @@ const Especialistas = () => {
   };
 
   const handleCancelar = () => {
-    setFormState({ nombre: '', apellido: '', especialidad: '' });
+    setFormState({
+      nombre: '',
+      apellido: '',
+      cedula: '',
+      telefono: '',
+      especialidad: '',
+      rol: '',
+      password: ''
+    });
     setIsEditing(null);
   };
 
-  // --- HTML CON TEXTOS CORREGIDOS ---
+  // 🆕 MANEJADORES PARA ROLES Y ESPECIALIDADES
+  const handleAgregarRol = () => {
+    if (nuevoRol.trim() && !roles.includes(nuevoRol.trim())) {
+      setRoles([...roles, nuevoRol.trim()]);
+      setNuevoRol('');
+      setShowModalRol(false);
+    }
+  };
+
+  const handleAgregarEspecialidad = () => {
+    if (nuevaEspecialidad.trim() && !especialidades.includes(nuevaEspecialidad.trim())) {
+      setEspecialidades([...especialidades, nuevaEspecialidad.trim()]);
+      setNuevaEspecialidad('');
+      setShowModalEspecialidad(false);
+    }
+  };
+
   return (
     <div className="especialistas-container">
-      <h2>Sección de Especialistas</h2>
+      <h2>Gestión de Especialistas</h2>
+      
       <div className="especialistas-content-layout">
+        {/* FORMULARIO IZQUIERDO */}
         <div className="form-especialista">
           <h3>{isEditing ? 'Editando Especialista' : 'Registrar Nuevo Especialista'}</h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Nombre:</label>
-              <input type="text" name="nombre" placeholder="Nombre del especialista" value={formState.nombre} onChange={handleInputChange} />
+              <label>Nombre *</label>
+              <input 
+                type="text" 
+                name="nombre" 
+                value={formState.nombre} 
+                onChange={handleInputChange}
+                placeholder="Nombre del especialista" 
+                required 
+              />
             </div>
+
             <div className="form-group">
-              <label>Apellido:</label>
-              <input type="text" name="apellido" placeholder="Apellido del especialista" value={formState.apellido} onChange={handleInputChange} />
+              <label>Apellido *</label>
+              <input 
+                type="text" 
+                name="apellido" 
+                value={formState.apellido} 
+                onChange={handleInputChange}
+                placeholder="Apellido del especialista" 
+                required 
+              />
             </div>
+
             <div className="form-group">
-              <label>Especialidad:</label>
-              <input type="text" name="especialidad" placeholder="Especialidad" value={formState.especialidad} onChange={handleInputChange} />
+              <label>Cédula Profesional *</label>
+              <input 
+                type="text" 
+                name="cedula" 
+                value={formState.cedula} 
+                onChange={handleInputChange}
+                placeholder="Número de cédula" 
+                required 
+              />
             </div>
-            <button type="submit" className="btn-agregar">{isEditing ? 'Actualizar' : 'Registrar'}</button>
-            <button type="button" className="btn-cancelar" onClick={handleCancelar}>Cancelar</button>
+
+            <div className="form-group">
+              <label>Teléfono</label>
+              <input 
+                type="tel" 
+                name="telefono" 
+                value={formState.telefono} 
+                onChange={handleInputChange}
+                placeholder="Número de teléfono" 
+              />
+            </div>
+
+            <div className="form-group-combobox">
+              <label>Especialidad *</label>
+              <div className="combobox-container">
+                <select 
+                  name="especialidad" 
+                  value={formState.especialidad} 
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Seleccionar especialidad</option>
+                  {especialidades.map((esp, index) => (
+                    <option key={index} value={esp}>{esp}</option>
+                  ))}
+                </select>
+                <button 
+                  type="button" 
+                  className="btn-agregar-opcion"
+                  onClick={() => setShowModalEspecialidad(true)}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group-combobox">
+              <label>Rol *</label>
+              <div className="combobox-container">
+                <select 
+                  name="rol" 
+                  value={formState.rol} 
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Seleccionar rol</option>
+                  {roles.map((rol, index) => (
+                    <option key={index} value={rol}>{rol}</option>
+                  ))}
+                </select>
+                <button 
+                  type="button" 
+                  className="btn-agregar-opcion"
+                  onClick={() => setShowModalRol(true)}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Contraseña *</label>
+              <input 
+                type="password" 
+                name="password" 
+                value={formState.password} 
+                onChange={handleInputChange}
+                placeholder="Contraseña para el especialista" 
+                required 
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn-agregar">
+                {isEditing ? '💾 Actualizar' : '➕ Registrar'}
+              </button>
+              {isEditing && (
+                <button type="button" onClick={handleCancelar} className="btn-cancelar">
+                  ❌ Cancelar
+                </button>
+              )}
+            </div>
           </form>
         </div>
         
+        {/* LISTADO DERECHO */}
         <div className="lista-especialistas-container">
-          <h3>Listado Actual</h3>
+          <div className="header-lista">
+            <h3>Listado de Especialistas</h3>
+            <span className="contador-especialistas">{especialistas.length} especialistas</span>
+          </div>
+          
           {especialistas.length > 0 ? (
             <div className="lista-especialistas">
               {especialistas.map(especialista => (
                 <div key={especialista.id} className="especialista-card">
-                  <h3>{especialista.nombre} {especialista.apellido}</h3>
-                  <p>Especialidad: {especialista.especialidad}</p>
+                  <div className="especialista-header">
+                    <div className="especialista-avatar">
+                      {especialista.nombre.charAt(0)}{especialista.apellido.charAt(0)}
+                    </div>
+                    <div className="especialista-info">
+                      <h4>Dr. {especialista.nombre} {especialista.apellido}</h4>
+                      <p className="especialista-datos">
+                        <strong>Cédula:</strong> {especialista.cedula} | 
+                        <strong> Especialidad:</strong> {especialista.especialidad} | 
+                        <strong> Rol:</strong> {especialista.rol}
+                      </p>
+                    </div>
+                  </div>
                   <div className="card-actions">
-                    <button onClick={() => handleEditar(especialista.id)}>Editar</button>
-                    <button onClick={() => handleEliminar(especialista.id)}>Eliminar</button>
+                    <button 
+                      onClick={() => handleEditar(especialista.id)}
+                      className="btn-editar"
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button 
+                      onClick={() => handleEliminar(especialista.id)}
+                      className="btn-eliminar"
+                    >
+                      🗑️ Eliminar
+                    </button>
                   </div>
                 </div>
               ))}
@@ -96,6 +297,86 @@ const Especialistas = () => {
           )}
         </div>
       </div>
+
+      {/* MODAL PARA AGREGAR ROL */}
+      {showModalRol && (
+        <div className="modal-overlay">
+          <div className="modal-especialidad">
+            <div className="modal-header">
+              <h3>🆕 Agregar Nuevo Rol</h3>
+              <button 
+                className="close-button" 
+                onClick={() => setShowModalRol(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="form-group">
+                <label>Nombre del Rol</label>
+                <input 
+                  type="text" 
+                  value={nuevoRol}
+                  onChange={(e) => setNuevoRol(e.target.value)}
+                  placeholder="Ej: Coordinador, Supervisor, etc."
+                  onKeyPress={(e) => e.key === 'Enter' && handleAgregarRol()}
+                />
+              </div>
+              <div className="modal-actions">
+                <button onClick={handleAgregarRol} className="btn-agregar">
+                  ➕ Agregar Rol
+                </button>
+                <button 
+                  onClick={() => setShowModalRol(false)} 
+                  className="btn-cancelar"
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA AGREGAR ESPECIALIDAD */}
+      {showModalEspecialidad && (
+        <div className="modal-overlay">
+          <div className="modal-especialidad">
+            <div className="modal-header">
+              <h3>🆕 Agregar Nueva Especialidad</h3>
+              <button 
+                className="close-button" 
+                onClick={() => setShowModalEspecialidad(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="form-group">
+                <label>Nombre de la Especialidad</label>
+                <input 
+                  type="text" 
+                  value={nuevaEspecialidad}
+                  onChange={(e) => setNuevaEspecialidad(e.target.value)}
+                  placeholder="Ej: Neurología, Dermatología, etc."
+                  onKeyPress={(e) => e.key === 'Enter' && handleAgregarEspecialidad()}
+                />
+              </div>
+              <div className="modal-actions">
+                <button onClick={handleAgregarEspecialidad} className="btn-agregar">
+                  ➕ Agregar Especialidad
+                </button>
+                <button 
+                  onClick={() => setShowModalEspecialidad(false)} 
+                  className="btn-cancelar"
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

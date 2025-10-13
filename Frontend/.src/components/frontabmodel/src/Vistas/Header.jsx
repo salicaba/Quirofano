@@ -1,42 +1,47 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import '../styles/Header.css';
 
-// 1. Se añade 'onLogout' para que el botón de cerrar sesión funcione
 const Header = ({ user, onLogout }) => {
+  const location = useLocation();
+  const esAdmin = user?.rol === 'admin';
 
-  // 2. Guarda de seguridad: Si no hay usuario, no se intenta leer 'user.role'
-  if (!user) {
-    // Puedes retornar null o una versión mínima del header
-    return (
-      <header className="app-header">
-        <h1 className="app-title">Hospital ADMODEL</h1>
-      </header>
-    );
-  }
-
-  // Si el usuario sí existe, se renderiza el header completo
   return (
     <header className="app-header">
-      <h1 className="app-title">Hospital ADMODEL</h1>
+      <div className="header-left">
+        <h1 className="app-title">Hospital ADMODEL</h1>
+      </div>
       
-      {/* 3. Lógica de navegación sin duplicación */}
       <nav className="header-nav">
-        {/* Enlaces comunes para todos los roles */}
-        <Link to="/pacientes" className="nav-button">Pacientes</Link>
-        <Link to="/horarios" className="nav-button">Horarios</Link>
+        <Link to="/pacientes" className={location.pathname === '/pacientes' ? 'nav-button active' : 'nav-button'}>
+          Pacientes
+        </Link>
         
-        {/* Enlaces exclusivos para el rol 'Admin' */}
-        {user.role === 'Admin' && (
-          <>
-            <Link to="/especialistas" className="nav-button">Especialistas</Link>
-            <Link to="/reportes" className="nav-button">Reportes</Link>
-          </>
+        {/* Especialistas - Solo Admin */}
+        {esAdmin && (
+          <Link to="/especialistas" className={location.pathname === '/especialistas' ? 'nav-button active' : 'nav-button'}>
+            Especialistas
+          </Link>
         )}
-
-        {/* En tu código original, el rol 'Especialista' también veía 'Reportes'.
-            Si ambos roles deben verlo, puedes ponerlo en los enlaces comunes.
-            Si solo el Admin lo ve, esta estructura es más limpia. */}
+        
+        {/* Quirófanos - Solo Admin */}
+        {esAdmin && (
+          <Link to="/quirofanos" className={location.pathname === '/quirofanos' ? 'nav-button active' : 'nav-button'}>
+           Quirófanos
+          </Link>
+        )}
+        
+        {/* Equipo Médico - Ambos roles */}
+        <Link to="/equipo-medico" className={location.pathname === '/equipo-medico' ? 'nav-button active' : 'nav-button'}>
+          Equipo Médico
+        </Link>
+        
+        <Link to="/horarios" className={location.pathname === '/horarios' ? 'nav-button active' : 'nav-button'}>
+          Horarios
+        </Link>
+        <Link to="/cirugias" className={location.pathname === '/cirugias' ? 'nav-button active' : 'nav-button'}>
+          Cirugías
+        </Link>
       </nav>
     </header>
   );
