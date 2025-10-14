@@ -34,7 +34,7 @@ const Paciente = {
         e.numero_expediente,
         e.procedencia
       FROM pacientes pa 
-      LEFT JOIN expedientes e ON pa.id_paciente = e.id_paciente
+      LEFT OUTER JOIN expedientes e ON pa.id_paciente = e.id_paciente
       ORDER BY pa.id_paciente DESC
     `;
     const result = await pool.query(query);

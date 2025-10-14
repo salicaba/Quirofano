@@ -426,6 +426,11 @@ const Pacientes = () => {
                       {paciente.numero_expediente && (
                         <span className="paciente-expediente"> {paciente.numero_expediente} |</span>
                       )}
+                      {paciente.procedencia && paciente.procedencia.trim() !== '' ? (
+                        <span className="paciente-procedencia"> {paciente.procedencia} |</span>
+                         ) : (
+                        <span className="paciente-procedencia"> No especificada |</span>
+                       )}
                     </div>
                   </div>
                   <div className="flecha-derecha">➡️</div>
