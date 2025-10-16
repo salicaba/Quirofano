@@ -20,14 +20,13 @@ function App() {
     if(token){
       try{
         const response = await axios.get('http://localhost:4001/api/auth/me', {
-           headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
-        // CORRECCIÓN 2: Guarda el usuario en el estado. Esta es la línea clave.
         setUser(response.data); 
       } catch(error) {
         console.error('Token no válido, limpiando...', error);
         localStorage.removeItem('token');
-        setUser(null); // Asegúrate de limpiar el usuario si el token falla
+        setUser(null);
       }
     }
     setAuthLoading(false);
@@ -38,7 +37,6 @@ function App() {
   }, []);
 
   const handleLogin = (data) =>{
-    console.log('2. handleLogin en App.jsx recibió:', data);
     localStorage.setItem('token', data.token);
     cargarDatosUsuario();
   };
@@ -64,7 +62,7 @@ function App() {
               <Layout 
                 user={user} 
                 onLogout={handleLogout} 
-                onProfileUpdate={cargarDatosUsuario} // Prop para actualizar el perfil
+                onProfileUpdate={cargarDatosUsuario}
               />
             }
           >
@@ -83,3 +81,4 @@ function App() {
 }
 
 export default App;
+

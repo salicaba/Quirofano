@@ -1,11 +1,9 @@
-// hashPasswords.js
 const pool = require('./config/db');
 const bcrypt = require('bcryptjs');
 
 // ▼▼▼ EDITA ESTA LISTA CON TUS USUARIOS Y LAS CONTRASEÑAS QUE QUIERAS ASIGNAR ▼▼▼
 const usuariosAActualizar = [
   { cedula: '123456789', passwordPlano: 'PasswordParaErick123' },
-  // Agrega más usuarios aquí si es necesario
 ];
 // ▲▲▲ FIN DE LA ZONA DE EDICIÓN ▲▲▲
 

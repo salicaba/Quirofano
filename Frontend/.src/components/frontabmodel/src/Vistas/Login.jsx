@@ -30,7 +30,7 @@ const Login = ({ onLogin }) => {
           <span className="logo-icon">+</span> 
         </div>
         <h1 className="title">ADMODEL</h1>
-        <p className="subtitle">HOSPITAL PRIVADO</p>
+        <p className="subtitle">Login Modificado el 16-10-2025</p>
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="input-group">
             {/* CORRECCIÓN 4 (Sugerencia): Cambiado para mayor claridad */}

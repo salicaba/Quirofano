@@ -7,5 +7,5 @@ const { protegerRuta, verificarRol } = require('../middleware/authMiddleware');
 router.post('/login', authController.login);
 
 // Corregimos 'Especialista' a 'Espacialista' para que coincida con tus datos
-router.get('/me', protegerRuta, verificarRol(['Admin', 'Espacialista']), authController.obtenerPerfil);
+router.get('/me', protegerRuta, verificarRol(['Administrador', 'Especialista']), authController.obtenerPerfil);
 module.exports = router;

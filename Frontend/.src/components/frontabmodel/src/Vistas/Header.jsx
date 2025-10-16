@@ -1,12 +1,11 @@
 import React from 'react';
-// 1. Importa NavLink en lugar de Link y quita useLocation
 import { NavLink } from 'react-router-dom';
 import '../styles/Header.css';
 
 const Header = ({ user, onLogout }) => {
+  
 
-  // 2. Guarda de seguridad para evitar errores si 'user' es nulo
-  // Si no hay usuario, muestra una versión mínima del header.
+
   if (!user) {
     return (
       <header className="app-header">
@@ -17,10 +16,12 @@ const Header = ({ user, onLogout }) => {
     );
   }
 
-  // 3. Variables claras para verificar los roles (insensible a mayúsculas)
-  const userRole = user.roles ? user.roles.toLowerCase() : '';
-  const isAdmin = userRole === 'admin';
-  const isEspecialista = userRole === 'especialista'; // O 'espacialista' si tienes un typo en la BD
+ 
+  const userRole = user.role ? user.role.toLowerCase() : '';
+
+  const isAdmin = userRole === 'administrador';
+
+  const isEspecialista = userRole === 'especialista' || userRole === 'espacialista';
 
   return (
     <header className="app-header">
@@ -29,7 +30,7 @@ const Header = ({ user, onLogout }) => {
       </div>
       
       <nav className="header-nav">
-        {/* --- ENLACES PARA EL ROL DE ADMIN --- */}
+        {/* ENLACES PARA ADMIN */}
         {isAdmin && (
           <>
             <NavLink to="/pacientes" className="nav-button">Pacientes</NavLink>
@@ -41,7 +42,7 @@ const Header = ({ user, onLogout }) => {
           </>
         )}
         
-        {/* --- ENLACES PARA EL ROL DE ESPECIALISTA --- */}
+        {/* ENLACES PARA ESPECIALISTA */}
         {isEspecialista && (
           <>
             <NavLink to="/pacientes" className="nav-button">Pacientes</NavLink>
@@ -50,8 +51,11 @@ const Header = ({ user, onLogout }) => {
           </>
         )}
       </nav>
+
+      
     </header>
   );
 };
 
 export default Header;
+

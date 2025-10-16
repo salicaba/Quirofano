@@ -460,3 +460,60 @@
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
 }
+
+/* Estilos para validaciones */
+.input-error {
+  border: 2px solid #ff4444 !important;
+  background-color: #fff8f8;
+}
+
+.error-text {
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #ffcdd2;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+/* Placeholder con color para inputs con error */
+.input-error::placeholder {
+  color: #ff8888;
+}
+
+/* Mejora visual para los formularios */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+}

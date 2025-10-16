@@ -87,7 +87,7 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
         {/* --- INFORMACIÓN DEL PERFIL --- */}
         <h2>BIENVENIDO</h2>
         <h2 className="profile-name">{nombreCompleto}</h2>
-        <p className="profile-role">{user.roles}</p>
+        <p className="profile-role">{user.role}</p>
         {user.especialidad && <p className="profile-detail">{user.especialidad}</p>}
       </div>
 

@@ -4,6 +4,7 @@ import '../styles/Pacientes.css';
 import { exportarPacientesPDF, exportarPacienteIndividualPDF } from '../utils/ExportarPDF';
 
 const Pacientes = () => { 
+ 
   const [nuevoPaciente, setNuevoPaciente] = useState({
     nombre: '',
     apellido: '',
@@ -13,22 +14,77 @@ const Pacientes = () => {
     procedencia: '',
     numero_expediente: ''
   });
-  
+
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [editando, setEditando] = useState(false);
   const [formEditState, setFormEditState] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [editFieldErrors, setEditFieldErrors] = useState({});
 
   const API_URL = 'http://localhost:4001/api/pacientes';
 
+  // --- VALIDACIONES ---
+  const validaciones = {
+    // Solo letras y espacios, entre 2 y 50 caracteres
+    nombre: (valor) => {
+      const regex = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]{2,50}$/;
+      if (!valor.trim()) return 'El nombre es requerido';
+      if (!regex.test(valor)) return 'El nombre solo puede contener letras y espacios (2-50 caracteres)';
+      return null;
+    },
+
+    apellido: (valor) => {
+      const regex = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]{0,50}$/;
+      if (valor && !regex.test(valor)) return 'El apellido solo puede contener letras y espacios (máximo 50 caracteres)';
+      return null;
+    },
+
+    // Formato: EXP-2024-001
+    numero_expediente: (valor) => {
+      if (!valor) return null; // Opcional
+      const regex = /^EXP-\d{4}-\d{3}$/;
+      if (!regex.test(valor)) return 'Formato inválido. Use: EXP-AAAA-NNN (ej: EXP-2024-001)';
+      return null;
+    }
+  };
+
+  // --- MÉTODOS DE FORMATEO ---
+  const formatearExpediente = (valor) => {
+    // Eliminar todo excepto letras, números y guiones
+    let cleaned = valor.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
+    
+    if (cleaned.startsWith('EXP')) {
+      cleaned = cleaned.slice(3);
+    }
+    
+    // Asegurar que empiece con EXP-
+    if (!cleaned.startsWith('EXP-') && cleaned.length > 0) {
+      cleaned = 'EXP-' + cleaned.replace(/^EXP/, '');
+    }
+    
+    // Aplicar formato automático
+    if (cleaned.length <= 4) {
+      return cleaned;
+    } else if (cleaned.length <= 9) {
+      return cleaned.slice(0, 4) + '-' + cleaned.slice(4);
+    } else {
+      return cleaned.slice(0, 4) + '-' + cleaned.slice(4, 8) + '-' + cleaned.slice(8, 11);
+    }
+  };
+
+  const formatearNombre = (valor) => {
+    // Solo permitir letras y espacios
+    return valor.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '');
+  };
+
+  // --- CARGA DE DATOS ---
   const cargarPacientes = async () => {
     try {
       setLoading(true);
       const response = await axios.get(API_URL);
-      
-      console.log('🔍 DEBUG - Datos recibidos del backend:', response.data);
       
       const listaPacientes = Array.isArray(response.data) ? response.data : [];
       setPacientes(listaPacientes);
@@ -45,25 +101,88 @@ const Pacientes = () => {
     cargarPacientes();
   }, []);
 
+  // --- MANEJADORES DE FORMULARIO PRINCIPAL ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let valorFormateado = value;
+
+    // Aplicar formato según el campo
+    if (name === 'numero_expediente') {
+      valorFormateado = formatearExpediente(value);
+    } else if (name === 'nombre' || name === 'apellido') {
+      valorFormateado = formatearNombre(value);
+    }
+
     setNuevoPaciente(prevState => ({
       ...prevState,
-      [name]: value
+      [name]: valorFormateado
     }));
+
+    // Validar en tiempo real y limpiar error si existe
+    if (fieldErrors[name]) {
+      const error = validaciones[name] ? validaciones[name](valorFormateado) : null;
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
+    }
   };
 
   const handleEditInputChange = (e) => {
     const { name, value } = e.target;
-    setFormEditState({ ...formEditState, [name]: value });
+    let valorFormateado = value;
+
+    // Aplicar formato según el campo
+    if (name === 'numero_expediente') {
+      valorFormateado = formatearExpediente(value);
+    } else if (name === 'nombre' || name === 'apellido') {
+      valorFormateado = formatearNombre(value);
+    }
+
+    setFormEditState({ ...formEditState, [name]: valorFormateado });
+
+    // Validar en tiempo real en edición
+    if (editFieldErrors[name]) {
+      const error = validaciones[name] ? validaciones[name](valorFormateado) : null;
+      setEditFieldErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
+    }
   };
-  
+
+  const validarFormulario = (formData, isEdit = false) => {
+    const nuevosErrores = {};
+
+    // Validar campos con reglas definidas
+    Object.keys(validaciones).forEach(key => {
+      const error = validaciones[key](formData[key]);
+      if (error) {
+        nuevosErrores[key] = error;
+      }
+    });
+
+    // Validar campos obligatorios adicionales
+    if (!formData.tipo_sangre) {
+      nuevosErrores.tipo_sangre = 'El tipo de sangre es requerido';
+    }
+
+    if (isEdit) {
+      setEditFieldErrors(nuevosErrores);
+    } else {
+      setFieldErrors(nuevosErrores);
+    }
+
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!nuevoPaciente.nombre || !nuevoPaciente.tipo_sangre) {
-      setError('El Nombre y Tipo de sangre son obligatorios');
+    // Validar formulario antes de enviar
+    if (!validarFormulario(nuevoPaciente)) {
+      setError('Por favor corrige los errores en el formulario');
       return;
     }
 
@@ -75,6 +194,7 @@ const Pacientes = () => {
         nombre: '', apellido: '', fecha_nacimiento: '',
         sexo: '', tipo_sangre: '', procedencia: '', numero_expediente: ''
       });
+      setFieldErrors({});
 
       cargarPacientes();
     } catch (err) {
@@ -82,7 +202,6 @@ const Pacientes = () => {
       console.error('Error en POST /pacientes:', err);
     }
   };
-
 
   const handleVerDetalles = (paciente) => {
     setPacienteSeleccionado(paciente);
@@ -111,15 +230,24 @@ const Pacientes = () => {
   const handleEditar = () => {
     setFormEditState({ ...pacienteSeleccionado });
     setEditando(true);
+    setEditFieldErrors({});
   };
 
   const handleGuardarEdicion = async (e) => {
     e.preventDefault();
+    
+    // Validar formulario de edición
+    if (!validarFormulario(formEditState, true)) {
+      setError('Por favor corrige los errores en el formulario');
+      return;
+    }
+
     try {
       await axios.put(`${API_URL}/${pacienteSeleccionado.id_paciente}`, formEditState);
       alert('¡Paciente actualizado con éxito!');
       setPacienteSeleccionado(formEditState);
       setEditando(false);
+      setEditFieldErrors({});
       cargarPacientes();
     } catch (err) {
       setError('Error al actualizar el paciente.');
@@ -130,6 +258,7 @@ const Pacientes = () => {
   const handleCancelarEdicion = () => {
     setEditando(false);
     setFormEditState({});
+    setEditFieldErrors({});
   };
 
   // VISTA: EDITANDO PACIENTE
@@ -147,28 +276,42 @@ const Pacientes = () => {
           <div className="form-paciente-editar">
             <form onSubmit={handleGuardarEdicion}>
               <div className="form-group">
-                <label>Nombre:</label>
+                <label>Nombre *</label>
                 <input 
                   type="text" 
                   name="nombre" 
                   value={formEditState.nombre || ''} 
-                  onChange={handleEditInputChange} 
-                  placeholder="Nombre" 
+                  onChange={handleEditInputChange}
+                  onBlur={() => {
+                    const error = validaciones.nombre(formEditState.nombre);
+                    setEditFieldErrors(prev => ({ ...prev, nombre: error }));
+                  }}
+                  placeholder="Ej: María" 
                   required
+                  className={editFieldErrors.nombre ? 'input-error' : ''}
                 />
+                {editFieldErrors.nombre && <span className="error-text">{editFieldErrors.nombre}</span>}
               </div>
+              
               <div className="form-group">
-                <label>Apellido:</label>
+                <label>Apellido</label>
                 <input 
                   type="text" 
                   name="apellido" 
                   value={formEditState.apellido || ''} 
-                  onChange={handleEditInputChange} 
-                  placeholder="Apellido" 
+                  onChange={handleEditInputChange}
+                  onBlur={() => {
+                    const error = validaciones.apellido(formEditState.apellido);
+                    setEditFieldErrors(prev => ({ ...prev, apellido: error }));
+                  }}
+                  placeholder="Ej: García López" 
+                  className={editFieldErrors.apellido ? 'input-error' : ''}
                 />
+                {editFieldErrors.apellido && <span className="error-text">{editFieldErrors.apellido}</span>}
               </div>
+              
               <div className="form-group">
-                <label>Fecha de Nacimiento:</label>
+                <label>Fecha de Nacimiento</label>
                 <input 
                   type="date" 
                   name="fecha_nacimiento" 
@@ -176,17 +319,25 @@ const Pacientes = () => {
                   onChange={handleEditInputChange} 
                 />
               </div>
+              
               <div className="form-group">
-                <label>Sexo:</label>
+                <label>Sexo</label>
                 <select name="sexo" value={formEditState.sexo || ''} onChange={handleEditInputChange}>
                   <option value="">Seleccionar sexo</option>
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                 </select>
               </div>
+              
               <div className="form-group">
-                <label>Tipo de Sangre:</label>
-                <select name="tipo_sangre" value={formEditState.tipo_sangre || ''} onChange={handleEditInputChange} required>
+                <label>Tipo de Sangre *</label>
+                <select 
+                  name="tipo_sangre" 
+                  value={formEditState.tipo_sangre || ''} 
+                  onChange={handleEditInputChange} 
+                  required
+                  className={editFieldErrors.tipo_sangre ? 'input-error' : ''}
+                >
                   <option value="">Seleccionar tipo</option>
                   <option value="O+">O+</option>
                   <option value="O-">O-</option>
@@ -197,19 +348,28 @@ const Pacientes = () => {
                   <option value="AB+">AB+</option>
                   <option value="AB-">AB-</option>
                 </select>
+                {editFieldErrors.tipo_sangre && <span className="error-text">{editFieldErrors.tipo_sangre}</span>}
               </div>
+              
               <div className="form-group">
-                <label>N° de Expediente:</label>
+                <label>N° de Expediente</label>
                 <input 
                   type="text" 
                   name="numero_expediente" 
                   value={formEditState.numero_expediente || ''} 
-                  onChange={handleEditInputChange} 
-                  placeholder="Ej: EXP-2025-001" 
+                  onChange={handleEditInputChange}
+                  onBlur={() => {
+                    const error = validaciones.numero_expediente(formEditState.numero_expediente);
+                    setEditFieldErrors(prev => ({ ...prev, numero_expediente: error }));
+                  }}
+                  placeholder="Ej: EXP-2024-001" 
+                  className={editFieldErrors.numero_expediente ? 'input-error' : ''}
                 />
+                {editFieldErrors.numero_expediente && <span className="error-text">{editFieldErrors.numero_expediente}</span>}
               </div>
+              
               <div className="form-group">
-                <label>Procedencia:</label>
+                <label>Procedencia</label>
                 <input 
                   type="text" 
                   name="procedencia" 
@@ -218,6 +378,7 @@ const Pacientes = () => {
                   placeholder="Ej: Departamento Cardiología" 
                 />
               </div>
+              
               <div className="form-actions-editar">
                 <button type="submit" className="btn-guardar">
                   💾 Guardar Cambios
@@ -318,28 +479,42 @@ const Pacientes = () => {
           <h3>Registrar Nuevo Paciente</h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Nombre:</label>
+              <label>Nombre *</label>
               <input 
                 type="text" 
                 name="nombre" 
                 value={nuevoPaciente.nombre} 
-                onChange={handleInputChange} 
-                placeholder="Nombre" 
+                onChange={handleInputChange}
+                onBlur={() => {
+                  const error = validaciones.nombre(nuevoPaciente.nombre);
+                  setFieldErrors(prev => ({ ...prev, nombre: error }));
+                }}
+                placeholder="Ej: Juan Carlos" 
                 required
+                className={fieldErrors.nombre ? 'input-error' : ''}
               />
+              {fieldErrors.nombre && <span className="error-text">{fieldErrors.nombre}</span>}
             </div>
+            
             <div className="form-group">
-              <label>Apellido:</label>
+              <label>Apellido</label>
               <input 
                 type="text" 
                 name="apellido" 
                 value={nuevoPaciente.apellido} 
-                onChange={handleInputChange} 
-                placeholder="Apellido" 
+                onChange={handleInputChange}
+                onBlur={() => {
+                  const error = validaciones.apellido(nuevoPaciente.apellido);
+                  setFieldErrors(prev => ({ ...prev, apellido: error }));
+                }}
+                placeholder="Ej: Pérez García" 
+                className={fieldErrors.apellido ? 'input-error' : ''}
               />
+              {fieldErrors.apellido && <span className="error-text">{fieldErrors.apellido}</span>}
             </div>
+            
             <div className="form-group">
-              <label>Fecha de Nacimiento:</label>
+              <label>Fecha de Nacimiento</label>
               <input 
                 type="date" 
                 name="fecha_nacimiento" 
@@ -347,17 +522,25 @@ const Pacientes = () => {
                 onChange={handleInputChange} 
               />
             </div>
+            
             <div className="form-group">
-              <label>Sexo:</label>
+              <label>Sexo</label>
               <select name="sexo" value={nuevoPaciente.sexo} onChange={handleInputChange}>
                 <option value="">Seleccionar sexo</option>
                 <option value="Masculino">Masculino</option>
                 <option value="Femenino">Femenino</option>
               </select>
             </div>
+            
             <div className="form-group">
-              <label>Tipo de Sangre:</label>
-              <select name="tipo_sangre" value={nuevoPaciente.tipo_sangre} onChange={handleInputChange} required>
+              <label>Tipo de Sangre *</label>
+              <select 
+                name="tipo_sangre" 
+                value={nuevoPaciente.tipo_sangre} 
+                onChange={handleInputChange} 
+                required
+                className={fieldErrors.tipo_sangre ? 'input-error' : ''}
+              >
                 <option value="">Seleccionar tipo</option>
                 <option value="O+">O+</option>
                 <option value="O-">O-</option>
@@ -368,19 +551,28 @@ const Pacientes = () => {
                 <option value="AB+">AB+</option>
                 <option value="AB-">AB-</option>
               </select>
+              {fieldErrors.tipo_sangre && <span className="error-text">{fieldErrors.tipo_sangre}</span>}
             </div>
+            
             <div className="form-group">
-              <label>N° de Expediente:</label>
+              <label>N° de Expediente</label>
               <input 
                 type="text" 
                 name="numero_expediente" 
                 value={nuevoPaciente.numero_expediente}
-                onChange={handleInputChange} 
-                placeholder="Ej: EXP-2025-001" 
+                onChange={handleInputChange}
+                onBlur={() => {
+                  const error = validaciones.numero_expediente(nuevoPaciente.numero_expediente);
+                  setFieldErrors(prev => ({ ...prev, numero_expediente: error }));
+                }}
+                placeholder="Ej: EXP-2024-001" 
+                className={fieldErrors.numero_expediente ? 'input-error' : ''}
               />
+              {fieldErrors.numero_expediente && <span className="error-text">{fieldErrors.numero_expediente}</span>}
             </div>
+            
             <div className="form-group">
-              <label>Procedencia:</label>
+              <label>Procedencia</label>
               <input 
                 type="text" 
                 name="procedencia" 

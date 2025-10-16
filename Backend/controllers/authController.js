@@ -23,7 +23,7 @@ exports.login = async (req, res) => {
     const payload = {
       usuario: {
         id: user.id_medicos,
-        role: user.rol_nombre
+        role: user.role
       }
     };
     console.log('4. Payload para el token creado:', payload);
