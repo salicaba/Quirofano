@@ -1,11 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
 import '../styles/Header.css';
 
-const Header = ({ user, onLogout }) => {
-  
-
-
+const Header = ({ user }) => {
   if (!user) {
     return (
       <header className="app-header">
@@ -16,12 +12,13 @@ const Header = ({ user, onLogout }) => {
     );
   }
 
- 
   const userRole = user.role ? user.role.toLowerCase() : '';
-
   const isAdmin = userRole === 'administrador';
-
   const isEspecialista = userRole === 'especialista' || userRole === 'espacialista';
+
+  const nombreCompleto = user.apellido_materno && user.apellido_materno !== 'null' 
+    ? `${user.nombre} ${user.apellido_paterno} ${user.apellido_materno}`
+    : `${user.nombre} ${user.apellido_paterno}`;
 
   return (
     <header className="app-header">
@@ -29,33 +26,14 @@ const Header = ({ user, onLogout }) => {
         <h1 className="app-title">Hospital ADMODEL</h1>
       </div>
       
-      <nav className="header-nav">
-        {/* ENLACES PARA ADMIN */}
-        {isAdmin && (
-          <>
-            <NavLink to="/pacientes" className="nav-button">Pacientes</NavLink>
-            <NavLink to="/especialistas" className="nav-button">Especialistas</NavLink>
-            <NavLink to="/quirofanos" className="nav-button">Quirófanos</NavLink>
-            <NavLink to="/equipo-medico" className="nav-button">Equipo Médico</NavLink>
-            <NavLink to="/horarios" className="nav-button">Horarios</NavLink>
-            <NavLink to="/cirugias" className="nav-button">Cirugías</NavLink>
-          </>
-        )}
-        
-        {/* ENLACES PARA ESPECIALISTA */}
-        {isEspecialista && (
-          <>
-            <NavLink to="/pacientes" className="nav-button">Pacientes</NavLink>
-            <NavLink to="/citas" className="nav-button">Citas</NavLink>
-            <NavLink to="/horarios" className="nav-button">Mis Horarios</NavLink>
-          </>
-        )}
-      </nav>
-
-      
+      {/* INFO DEL USUARIO - REEMPLAZA LAS PESTAÑAS */}
+      <div className="header-user-info">
+        <span className="user-name-header">{nombreCompleto}</span>
+        <span className="user-role-header">{user.role}</span>
+        {user.especialidad && <span className="user-specialty-header">{user.especialidad}</span>}
+      </div>
     </header>
   );
 };
 
 export default Header;
-

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { NavLink } from 'react-router-dom';
 import '../styles/Sidebar.css';
 
 const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
-  // --- ESTADOS Y FUNCIONES PARA SUBIR FOTO ---
   const [archivo, setArchivo] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
 
@@ -31,7 +31,7 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
       });
       alert('¡Foto de perfil actualizada!');
       if (onProfileUpdate) {
-        onProfileUpdate(); // Llama a la función de App.jsx para recargar los datos
+        onProfileUpdate();
       }
     } catch (error) {
       console.error('Error al subir la foto:', error);
@@ -42,26 +42,27 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
     }
   };
   
-  // --- LÓGICA PARA MOSTRAR DATOS ---
   if (!user) {
     return <aside className="app-sidebar"></aside>; 
   }
 
+  // MANTENER LÓGICA DE ROLES ORIGINAL
+  const userRole = user.role ? user.role.toLowerCase() : '';
+  const isAdmin = userRole === 'administrador';
+  const isEspecialista = userRole === 'especialista' || userRole === 'espacialista';
 
   const imageUrl = user.foto_perfil 
     ? `http://localhost:4001/${user.foto_perfil.replace(/\\/g, '/')}`
     : null;
-    const nombreCompleto = user.apellido_materno && user.apellido_materno !== 'null' 
+  const nombreCompleto = user.apellido_materno && user.apellido_materno !== 'null' 
     ? `${user.nombre} ${user.apellido_paterno} ${user.apellido_materno}`
     : `${user.nombre} ${user.apellido_paterno}`;
-
   const inicial = user.nombre ? user.nombre.charAt(0).toUpperCase() : '?';
 
   return (
     <aside className="app-sidebar">
+      {/* SECCIÓN DEL PERFIL ORIGINAL - SIN CAMBIOS */}
       <div className="profile">
-        
-
         <div className="profile-image-container">
           {imageUrl ? (
             <img src={imageUrl} alt="Foto de perfil" className="profile-image" />
@@ -84,12 +85,35 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
           </button>
         )}
         
-        {/* --- INFORMACIÓN DEL PERFIL --- */}
         <h2>BIENVENIDO</h2>
         <h2 className="profile-name">{nombreCompleto}</h2>
         <p className="profile-role">{user.role}</p>
         {user.especialidad && <p className="profile-detail">{user.especialidad}</p>}
       </div>
+
+      {/* PESTAÑAS SIN QUIROFANOS */}
+      <nav className="sidebar-nav">
+        {/* ENLACES PARA ADMIN - SIN QUIROFANOS */}
+        {isAdmin && (
+          <>
+            <NavLink to="/pacientes" className="nav-link">Pacientes</NavLink>
+            <NavLink to="/especialistas" className="nav-link">Especialistas</NavLink>
+            {/* 🗑️ QUITADO: Quirófanos */}
+            <NavLink to="/equipo-medico" className="nav-link">Equipo Médico</NavLink>
+            <NavLink to="/horarios" className="nav-link">Horarios</NavLink>
+            <NavLink to="/cirugias" className="nav-link">Cirugías</NavLink>
+          </>
+        )}
+        
+        {/* ENLACES PARA ESPECIALISTA */}
+        {isEspecialista && (
+          <>
+            <NavLink to="/pacientes" className="nav-link">Pacientes</NavLink>
+            <NavLink to="/citas" className="nav-link">Citas</NavLink>
+            <NavLink to="/horarios" className="nav-link">Mis Horarios</NavLink>
+          </>
+        )}
+      </nav>
 
       <div style={{flex: 1}}></div> 
 
@@ -109,4 +133,3 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
 };
 
 export default Sidebar;
-

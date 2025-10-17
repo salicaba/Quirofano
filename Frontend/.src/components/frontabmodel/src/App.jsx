@@ -6,7 +6,6 @@ import Login from './Vistas/Login';
 import Layout from './Vistas/Layout';
 import Pacientes from './Vistas/Pacientes';
 import Especialistas from './Vistas/Especialistas';
-import Quirofanos from './Vistas/Quirofanos';
 import EquipoMedico from './Vistas/EquipoMedico';
 import Horarios from './Vistas/Horarios';
 import Cirugias from './Vistas/Cirugias';
@@ -69,7 +68,6 @@ function App() {
             <Route index element={<Pacientes />} />
             <Route path="pacientes" element={<Pacientes />} />
             <Route path="especialistas" element={<Especialistas />} />
-            <Route path="quirofanos" element={<Quirofanos />} />
             <Route path="equipo-medico" element={<EquipoMedico />} />
             <Route path="horarios" element={<Horarios />} />
             <Route path="cirugias" element={<Cirugias />} />
