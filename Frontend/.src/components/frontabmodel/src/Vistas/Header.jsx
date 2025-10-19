@@ -1,7 +1,7 @@
 import React from 'react';
-import '../styles/Header.css';
+import '../styles/Header.css'; // Solo se necesita CSS
 
-const Header = ({ user }) => {
+const Header = ({ user, onLogout }) => {
   if (!user) {
     return (
       <header className="app-header">
@@ -12,25 +12,33 @@ const Header = ({ user }) => {
     );
   }
 
-  const userRole = user.role ? user.role.toLowerCase() : '';
-  const isAdmin = userRole === 'administrador';
-  const isEspecialista = userRole === 'especialista' || userRole === 'espacialista';
+  // Construcción del nombre completo
+  const nombreCompleto = [user.nombre, user.apellido_paterno, user.apellido_materno]
+    .filter(Boolean)
+    .join(' ');
 
-  const nombreCompleto = user.apellido_materno && user.apellido_materno !== 'null' 
-    ? `${user.nombre} ${user.apellido_paterno} ${user.apellido_materno}`
-    : `${user.nombre} ${user.apellido_paterno}`;
+  // Información del rol y especialidad
+  const rolDisplay = user.role || 'Rol no especificado';
+  const especialidadDisplay = user.especialidad || '';
 
   return (
     <header className="app-header">
+      {/* Sección Izquierda (Título) */}
       <div className="header-left">
         <h1 className="app-title">Hospital ADMODEL</h1>
       </div>
-      
-      {/* INFO DEL USUARIO - REEMPLAZA LAS PESTAÑAS */}
-      <div className="header-user-info">
-        <span className="user-name-header">{nombreCompleto}</span>
-        <span className="user-role-header">{user.role}</span>
-        {user.especialidad && <span className="user-specialty-header">{user.especialidad}</span>}
+
+      {/* Sección Derecha (Info Usuario + Logout) */}
+      <div className="header-right">
+        {/* "BIENVENIDO" YA NO ESTÁ AQUÍ */}
+        <div className="header-user-info">
+          <span className="user-name-header">{nombreCompleto}</span>
+          <span className="user-role-header">{rolDisplay}</span>
+          {especialidadDisplay && <span className="user-specialty-header">{especialidadDisplay}</span>}
+        </div>
+        <button onClick={onLogout} className="logout-button-header">
+          Cerrar Sesión
+        </button>
       </div>
     </header>
   );

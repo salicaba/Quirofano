@@ -2,374 +2,199 @@ import React, { useState } from 'react';
 import EmergenciaModal from './EmergenciaModal';
 import '../styles/Horarios.css';
 
-const Horarios = ({ user }) => {
-  const [showEmergenciaModal, setShowEmergenciaModal] = useState(false);
-  const [showQuirofanos, setShowQuirofanos] = useState(false);
-  const [showRegistrarHorario, setShowRegistrarHorario] = useState(false);
-  
-  // DEBUG - Verificar en consola
-  console.log("🛠️ DEBUG HORARIOS - INICIO");
-  console.log("User:", user);
-  console.log("User role:", user?.role);
-  console.log("User role lowercase:", user?.role?.toLowerCase());
-  console.log("Is admin?", user?.role?.toLowerCase() === "administrador");
-  console.log("🛠️ DEBUG HORARIOS - FIN");
+// Versión SIN roles, Click muestra Detalles, 5 Estados
+const Horarios = () => {
 
-  // ESTADO VACÍO - SIN DATOS POR DEFECTO
-  const [calendario, setCalendario] = useState({
-    lunes: [],
-    martes: [],
-    miercoles: [],
-    jueves: [],
-    viernes: [],
-    sabado: [],
-    domingo: []
+  const [showEmergenciaModal, setShowEmergenciaModal] = useState(false);
+  const [showAgregarHorario, setShowAgregarHorario] = useState(false);
+  const [showGestionQuirofanos, setShowGestionQuirofanos] = useState(false);
+  const [showListaEdicion, setShowListaEdicion] = useState(false);
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [detalleHorario, setDetalleHorario] = useState(null);
+
+  const [diaSeleccionado, setDiaSeleccionado] = useState('Lunes');
+  const [horarioAEditar, setHorarioAEditar] = useState(null);
+  const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+  // --- MAPA DE ESTADOS Y COLORES (5 ESTADOS) ---
+  const statusMap = {
+    programada: { texto: 'Programada', color: '#3498db' },    // Azul
+    baja: { texto: 'Baja Urgencia', color: '#27ae60' },     // Verde
+    medio: { texto: 'Media Urgencia', color: '#f39c12' },   // Naranja
+    emergencia: { texto: 'Emergencia', color: '#e74c3c' }, // Rojo
+    completada: { texto: 'Completada', color: '#6c757d' }  // Gris oscuro
+  };
+  const statusOptions = Object.keys(statusMap);
+
+  const [nuevoHorario, setNuevoHorario] = useState({
+    dia: diaSeleccionado, quirofano: '', horaInicio: '', duracion: 2,
+    tipoCirugia: '', especialista: '', paciente: ''
   });
 
   const [quirofanos, setQuirofanos] = useState([
-    { id: 1, nombre: 'Quirófano 1', estado: 'disponible', equipamiento: 'Avanzado' },
-    { id: 2, nombre: 'Quirófano 2', estado: 'disponible', equipamiento: 'Básico' },
-    { id: 3, nombre: 'Quirófano 3', estado: 'disponible', equipamiento: 'Especializado' }
+    { id: 1, nombre: 'Q1', estado: 'disponible', equipamiento: 'Básico' },
+    { id: 2, nombre: 'Q2', estado: 'disponible', equipamiento: 'Avanzado' },
+    { id: 3, nombre: 'Q3', estado: 'mantenimiento', equipamiento: 'Básico' },
+    { id: 4, nombre: 'Q4', estado: 'disponible', equipamiento: 'Inteligente' }
   ]);
+  const [nuevoQuirofano, setNuevoQuirofano] = useState({ nombre: '', equipamiento: 'Básico' });
 
-  const [nuevoHorario, setNuevoHorario] = useState({
-    dia: 'lunes',
-    hora: '',
-    quirofano: '',
-    cirugia: '',
-    especialista: '',
-    duracion: '1'
-  });
+  // Datos Mock (Reemplazar con llamadas API si es necesario)
+  const tiposCirugia = [ 'Cirugía Cardíaca', 'Cirugía Abdominal', 'Cirugía Ortopédica', 'Cirugía Neurológica', 'Cirugía Plástica', 'Cirugía Vascular', 'Cirugía Torácica', 'Cirugía Pediátrica', 'Cirugía Oncológica', 'Cirugía Oftalmológica' ];
+  const especialistas = [ 'Dr. Carlos García - Cardiólogo', 'Dra. María Fernández - Cirujana General', 'Dr. Roberto Sánchez - Ortopedista', 'Dra. Elena Castro - Neurocirujana', 'Dr. Javier Morales - Cirujano Plástico', 'Dra. Ana López - Vascular', 'Dr. Pedro Ramírez - Torácico', 'Dra. Laura Gómez - Pediatra', 'Dr. Miguel Torres - Oncólogo', 'Dra. Sofía Díaz - Oftalmóloga' ];
 
-  // LÓGICA DE ROLES
-  const userRole = user?.role?.toLowerCase() || '';
-  const isAdmin = userRole === 'administrador' || userRole === 'admin';
-
-  const handleEmergenciaConfirm = (datosCirugia) => {
-    console.log('Datos de cirugía de emergencia:', datosCirugia);
-    alert(`🚨 Cirugía de emergencia registrada para: ${datosCirugia.paciente}`);
+  const generarHoras = () => {
+    const horas = [];
+    for (let hora = 7; hora <= 19; hora++) {
+      for (let minuto = 0; minuto < 60; minuto += 30) {
+        const horaFormateada = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+        horas.push({ valor: horaFormateada, display: horaFormateada });
+      }
+    }
+    return horas;
   };
+  const horasDisponibles = generarHoras();
+  const [horarios, setHorarios] = useState([]); // Inicia vacío, debería cargarse desde API
+  const horariosDelDia = [ '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00' ];
 
-  // FUNCIÓN PARA REGISTRAR HORARIOS
-  const handleRegistrarHorario = (e) => {
+  // --- Manejadores de Modales ---
+  const handleOpenAgregarModal = () => { setHorarioAEditar(null); setNuevoHorario({ dia: diaSeleccionado, quirofano: '', horaInicio: '', duracion: 2, tipoCirugia: '', especialista: '', paciente: '' }); setShowAgregarHorario(true); };
+  const handleCloseModal = () => { setShowAgregarHorario(false); setHorarioAEditar(null); setNuevoHorario({ dia: diaSeleccionado, quirofano: '', horaInicio: '', duracion: 2, tipoCirugia: '', especialista: '', paciente: '' }); };
+
+  // --- Lógica CRUD Horarios (Local) ---
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    
-    if (!nuevoHorario.hora || !nuevoHorario.quirofano || !nuevoHorario.cirugia || !nuevoHorario.especialista) {
-      alert('Por favor completa todos los campos obligatorios');
-      return;
+    if (!nuevoHorario.horaInicio) { alert('Selecciona hora.'); return; }
+    const horaFin = calcularHoraFin(nuevoHorario.horaInicio, nuevoHorario.duracion);
+    if (horarioAEditar) {
+      const horarioActualizado = { ...horarioAEditar, ...nuevoHorario, horaFin: horaFin };
+      setHorarios(horarios.map(h => h.id === horarioAEditar.id ? horarioActualizado : h));
+      alert('✅ Horario actualizado localmente');
+    } else {
+      const nuevoHorarioObj = { ...nuevoHorario, id: Date.now(), horaFin: horaFin, tipo: 'programada', color: statusMap['programada'].color };
+      setHorarios([...horarios, nuevoHorarioObj]);
+      alert('✅ Horario agregado localmente');
     }
-
-    const nuevoHorarioObj = {
-      id: Date.now(),
-      hora: nuevoHorario.hora,
-      quirofano: nuevoHorario.quirofano,
-      cirugia: nuevoHorario.cirugia,
-      especialista: nuevoHorario.especialista,
-      duracion: nuevoHorario.duracion,
-      estado: 'asignada'
-    };
-
-    // AGREGAR AL CALENDARIO
-    setCalendario(prev => ({
-      ...prev,
-      [nuevoHorario.dia]: [...prev[nuevoHorario.dia], nuevoHorarioObj].sort((a, b) => a.hora.localeCompare(b.hora))
-    }));
-
-    alert('✅ Horario registrado exitosamente');
-    setShowRegistrarHorario(false);
-    setNuevoHorario({
-      dia: 'lunes',
-      hora: '',
-      quirofano: '',
-      cirugia: '',
-      especialista: '',
-      duracion: '1'
-    });
+    handleCloseModal();
+  };
+   const handleStatusChangeFromList = (id, nuevoStatus) => {
+    setHorarios(currentHorarios => currentHorarios.map(horario => horario.id === id ? { ...horario, tipo: nuevoStatus, color: statusMap[nuevoStatus].color } : horario));
+    console.log(`Estado de ${id} cambiado a ${nuevoStatus}`);
   };
 
-  // FUNCIÓN PARA ELIMINAR HORARIO
-  const handleEliminarHorario = (dia, id) => {
-    if (window.confirm('¿Estás seguro de eliminar este horario?')) {
-      setCalendario(prev => ({
-        ...prev,
-        [dia]: prev[dia].filter(horario => horario.id !== id)
-      }));
-      alert('Horario eliminado');
-    }
-  };
+  // --- Lógica CRUD Quirófanos (Local) ---
+  const handleQuirofanoFormChange = (e) => { const { name, value } = e.target; setNuevoQuirofano(prev => ({ ...prev, [name]: value })); };
+  const handleAgregarQuirofano = (e) => { e.preventDefault(); const n = nuevoQuirofano.nombre.trim(); if (!n || quirofanos.some(q=>q.nombre.toLowerCase()===n.toLowerCase())) { alert('Nombre inválido/duplicado.'); return; } const qObj = { id: Date.now(), nombre: n, equipamiento: nuevoQuirofano.equipamiento, estado: 'disponible' }; setQuirofanos([...quirofanos, qObj]); setNuevoQuirofano({ nombre: '', equipamiento: 'Básico' }); alert('✅ Quirófano agregado'); };
+  const tieneCirugiasAsignadas = (nombreQuirofano) => horarios.some(h => h.quirofano === nombreQuirofano);
+  const handleEliminarQuirofano = (id, nombre) => { if (tieneCirugiasAsignadas(nombre)) { alert(`"${nombre}" tiene cirugías.`); return; } if (window.confirm(`¿Eliminar "${nombre}"?`)) { setQuirofanos(quirofanos.filter(q => q.id !== id)); alert('✅ Quirófano eliminado'); } };
+  const handleToggleQuirofanoEstado = (id) => { setQuirofanos(qs => qs.map(q => { if (q.id === id) { let next = 'disponible'; if (q.estado === 'disponible') next = 'ocupado'; else if (q.estado === 'ocupado') { if (tieneCirugiasAsignadas(q.nombre)) { alert(`"${q.nombre}" tiene cirugías.`); return q; } next = 'mantenimiento'; } return { ...q, estado: next }; } return q; })); };
 
-  // VISTA DE QUIROFANOS
-  if (showQuirofanos) {
-    return (
-      <div className="quirofanos-container">
-        <div className="quirofanos-header">
-          <button onClick={() => setShowQuirofanos(false)} className="btn-volver">
-            ← Volver a Horarios
-          </button>
-          <h2>Gestión de Quirófanos</h2>
+  // --- Helpers ---
+  const calcularHoraFin = (ini, dur) => { if (!ini || !dur) return ''; const [h, m] = ini.split(':').map(Number); const d = parseInt(dur, 10) || 2; const mins = h * 60 + m + (d * 60); const hf = Math.floor(mins / 60) % 24; const mf = mins % 60; return `${hf.toString().padStart(2, '0')}:${mf.toString().padStart(2, '0')}`; };
+  const handleInputChange = (e) => { if (e.target && !e.target.name && e.target.value) { setNuevoHorario(p => ({ ...p, horaInicio: e.target.value })); } else if (e.target && e.target.name) { const { name, value } = e.target; setNuevoHorario(p => ({ ...p, [name]: value })); } };
+  const getHorarioPosicion = (ini, fin) => { const i = horariosDelDia.indexOf(ini); const f = horariosDelDia.indexOf(fin); if (i === -1 || f === -1 || f <= i) { const si = i !== -1 ? i : 0; return { inicio: si, duracion: 2, altura: 112 }; } const slots = f - i; return { inicio: i, duracion: slots, altura: slots * 58 - 4 }; };
+  const getHorariosPorQuirofano = (qNom) => horarios.filter(h => h.quirofano === qNom && h.dia === diaSeleccionado);
+  const getHorariosDelDia = () => horarios.filter(h => h.dia === diaSeleccionado).sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
+  const handleEmergenciaConfirm = (datos) => { const nH = { id: Date.now(), dia: diaSeleccionado, horaInicio: '15:00', horaFin: '17:00', quirofano: quirofanos[0]?.nombre || 'Q?', cirugia: datos.tipoCirugia || 'Emergencia', especialista: datos.especialista || 'Emergencias', paciente: datos.paciente || 'N/A', duracion: 2, tipo: 'emergencia', color: statusMap['emergencia'].color }; setHorarios([...horarios, nH]); alert(`🚨 Emergencia registrada`); };
+  const handleEditarHorario = (h) => { setHorarioAEditar(h); setNuevoHorario(h); setShowAgregarHorario(true); };
+  const handleOpenEditFromList = (h) => { setShowListaEdicion(false); handleEditarHorario(h); };
+  const handleVerDetalleClick = (h) => { setDetalleHorario(h); setShowDetalleModal(true); };
+
+
+  const quirofanoNombres = quirofanos.map(q => q.nombre);
+  const gridColumnStyle = { gridTemplateColumns: `100px repeat(${quirofanos.length > 0 ? quirofanos.length : 1}, 1fr)` };
+
+
+  return (
+    <div className="horarios-container">
+      {/* Header */}
+      <div className="horarios-header">
+        <h2>Gestión de Horarios - {diaSeleccionado}</h2>
+        <div className="header-actions">
+          <button className="btn-quirofanos" onClick={() => setShowGestionQuirofanos(true)}>🏥 Gestionar Quirófanos</button>
+          <button className="btn-agregar-horario" onClick={handleOpenAgregarModal}>➕ Agregar Horario</button>
+          <button className="btn-tabla-horarios" onClick={() => setShowListaEdicion(true)}>✏️ Cambiar Estado</button>
+          <button className="emergency-btn-horarios" onClick={() => setShowEmergenciaModal(true)}>🚨 Registrar Emergencia</button>
+        </div>
+      </div>
+
+      {/* Day Tabs */}
+      <div className="dias-semana-tabs">{diasSemana.map(dia => (<button key={dia} className={`dia-tab ${diaSeleccionado === dia ? 'active' : ''}`} onClick={() => setDiaSeleccionado(dia)}>{dia}</button>))}</div>
+
+      {/* Leyenda */}
+      <div className="leyenda-horarios">
+        <h4>Leyenda de Estado/Urgencia:</h4>
+        <div className="leyenda-items">
+          <div className="leyenda-item"><div className="color-box programada"></div><span>Programada</span></div>
+          <div className="leyenda-item"><div className="color-box baja"></div><span>Baja</span></div>
+          <div className="leyenda-item"><div className="color-box medio"></div><span>Media</span></div>
+          <div className="leyenda-item"><div className="color-box emergencia"></div><span>Emergencia</span></div>
+          <div className="leyenda-item"><div className="color-box completada"></div><span>Completada</span></div>
+        </div>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="calendario-horarios">
+        {/* Calendar Header */}
+        <div className="calendario-header" style={gridColumnStyle}>
+          <div className="hora-header">Horas</div>
+          {quirofanos.map(q => {
+             let estadoTexto = '✅ Disponible'; if (q.estado === 'ocupado') estadoTexto = '🔴 Ocupado'; if (q.estado === 'mantenimiento') estadoTexto = '🛠️ Mantenimiento';
+             return (<div key={q.id} className="quirofano-header"><span className="quirofano-nombre" translate="no">{q.nombre}</span><span className={`quirofano-estado estado-${q.estado}`}>{estadoTexto}</span></div>);
+          })}
+           {quirofanos.length === 0 && <div className="quirofano-header">-</div>}
         </div>
 
-        <div className="quirofanos-content">
-          <div className="quirofanos-grid">
-            {quirofanos.map(quirofano => (
-              <div key={quirofano.id} className={`quirofano-card ${quirofano.estado}`}>
-                <h3>{quirofano.nombre}</h3>
-                <p className={`estado ${quirofano.estado}`}>
-                  {quirofano.estado === 'disponible' ? '✅ Disponible' : '🔴 Ocupado'}
-                </p>
-                <p className="equipamiento">Equipamiento: {quirofano.equipamiento}</p>
-                <div className="quirofano-actions">
-                  <button>Editar</button>
-                  <button>Ver Detalles</button>
-                </div>
+        {/* Calendar Body */}
+        <div className="calendario-body" style={gridColumnStyle}>
+          {/* ----- Hours Column VERIFICADO ----- */}
+          <div className="horas-columna">
+            {horariosDelDia.map(hora => (
+              <div key={hora} className="hora-slot">
+                {/* ESTE SPAN DEBE ESTAR */}
+                <span className="hora-texto">{hora}</span>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    );
-  }
+          {/* ----- Fin Hours Column ----- */}
 
-  // VISTA PRINCIPAL - ESTILO TABLA
-  return (
-    <div className="horarios-container">
-      <div className="horarios-header">
-        <h2>Gestión de Horarios</h2>
-        <div className="header-actions">
-          <button 
-            className="quirofanos-btn"
-            onClick={() => setShowQuirofanos(true)}
-          >
-            🏥 Quirófanos
-          </button>
-          
-          {/* BOTÓN TEMPORAL - SIEMPRE VISIBLE PARA DEBUG */}
-          <button 
-            className="registrar-horario-btn"
-            onClick={() => setShowRegistrarHorario(true)}
-          >
-            ➕ Agregar Horario
-          </button>
-          
-          {/* BOTÓN REAL - SOLO PARA ADMIN */}
-          {isAdmin && (
-            <button 
-              className="registrar-horario-btn"
-              onClick={() => setShowRegistrarHorario(true)}
-            >
-              ➕ Agregar Horario
-            </button>
-          )}
-          
-          <button 
-            className="emergency-btn-horarios"
-            onClick={() => setShowEmergenciaModal(true)}
-          >
-            🚨 Cirugía de Emergencia
-          </button>
-        </div>
-      </div>
-
-      {/* TABLA DE HORARIOS */}
-      <div className="tabla-horarios-container">
-        <div className="tabla-header">
-          <h3>Horarios Programados</h3>
-          <div className="tabla-stats">
-            <span className="total-cirugias">
-              Total: {Object.values(calendario).flat().length} cirugías
-            </span>
-          </div>
-        </div>
-
-        <div className="tabla-horarios">
-          <table className="horarios-table">
-            <thead>
-              <tr>
-                <th>Día</th>
-                <th>Hora</th>
-                <th>Quirófano</th>
-                <th>Cirugía</th>
-                <th>Especialista</th>
-                <th>Duración</th>
-                {isAdmin && <th>Acciones</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(calendario).map(([dia, horarios]) =>
-                horarios.map(horario => (
-                  <tr key={horario.id} className="fila-horario">
-                    <td className="dia-cell">{dia.charAt(0).toUpperCase() + dia.slice(1)}</td>
-                    <td className="hora-cell">{horario.hora}</td>
-                    <td className="quirofano-cell">{horario.quirofano}</td>
-                    <td className="cirugia-cell">{horario.cirugia}</td>
-                    <td className="especialista-cell">{horario.especialista}</td>
-                    <td className="duracion-cell">{horario.duracion}h</td>
-                    {isAdmin && (
-                      <td className="acciones-cell">
-                        <button 
-                          className="btn-eliminar"
-                          onClick={() => handleEliminarHorario(dia, horario.id)}
-                          title="Eliminar horario"
-                        >
-                          🗑️
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-              
-              {Object.values(calendario).flat().length === 0 && (
-                <tr className="fila-vacia">
-                  <td colSpan={isAdmin ? "7" : "6"} className="mensaje-vacio">
-                    <div className="contenido-vacio">
-                      <span>📅</span>
-                      <p>No hay horarios programados</p>
-                      {isAdmin && (
-                        <button 
-                          className="btn-agregar-primero"
-                          onClick={() => setShowRegistrarHorario(true)}
-                        >
-                          ➕ Agregar primer horario
-                        </button>
-                      )}
+          {/* Quirofano Columns */}
+          {quirofanoNombres.map(nombreQuirofano => (
+            <div key={nombreQuirofano} className="quirofano-columna">
+              {horariosDelDia.map((hora) => (<div key={`${nombreQuirofano}-${hora}`} className="celda-horario"></div>))}
+              {getHorariosPorQuirofano(nombreQuirofano).map(horario => {
+                const posicion = getHorarioPosicion(horario.horaInicio, horario.horaFin);
+                return (
+                  <div
+                    key={horario.id}
+                    className={`cirugia-block ${horario.tipo}`}
+                    style={{ top: `${posicion.inicio * 58 + 2}px`, height: `${posicion.altura}px`, backgroundColor: horario.color, borderLeft: `4px solid ${horario.color}`, cursor: 'pointer' }}
+                    onClick={() => handleVerDetalleClick(horario)}
+                    title="Ver Detalles"
+                  >
+                    <div className="cirugia-content">
+                      <div className="cirugia-titulo">{horario.cirugia}</div>
+                      <div className="cirugia-especialista">{horario.especialista}</div>
+                      <div className="cirugia-paciente">{horario.paciente}</div>
+                      <div className="cirugia-horario">{horario.horaInicio} - {horario.horaFin} ({horario.duracion}h)</div>
                     </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+           {quirofanos.length === 0 && <div className="quirofano-columna"></div>}
         </div>
-
-        {/* BOTÓN EDITAR HORARIOS - DEBAJO DE LA TABLA - SOLO PARA ADMIN */}
-        {isAdmin && (
-          <div className="tabla-actions">
-            <button 
-              className="editar-horarios-btn"
-              onClick={() => alert('Funcionalidad de edición en desarrollo')}
-            >
-              ✏️ Editar Horarios
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* MODAL AGREGAR HORARIO */}
-      {showRegistrarHorario && (
-        <div className="modal-overlay">
-          <div className="modal-horario">
-            <div className="modal-header">
-              <h3>Agregar Nuevo Horario</h3>
-              <button className="close-button" onClick={() => setShowRegistrarHorario(false)}>×</button>
-            </div>
-            
-            <form onSubmit={handleRegistrarHorario} className="modal-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Día de la Semana</label>
-                  <select 
-                    name="dia" 
-                    value={nuevoHorario.dia} 
-                    onChange={(e) => setNuevoHorario({...nuevoHorario, dia: e.target.value})}
-                    required
-                  >
-                    <option value="lunes">Lunes</option>
-                    <option value="martes">Martes</option>
-                    <option value="miercoles">Miércoles</option>
-                    <option value="jueves">Jueves</option>
-                    <option value="viernes">Viernes</option>
-                    <option value="sabado">Sábado</option>
-                    <option value="domingo">Domingo</option>
-                  </select>
-                </div>
 
-                <div className="form-group">
-                  <label>Hora de Inicio</label>
-                  <input 
-                    type="time" 
-                    name="hora" 
-                    value={nuevoHorario.hora} 
-                    onChange={(e) => setNuevoHorario({...nuevoHorario, hora: e.target.value})} 
-                    required
-                  />
-                </div>
-              </div>
+      {/* --- Modals --- */}
+      {showAgregarHorario && ( <div className="modal-overlay"><div className="modal-agregar-horario"><div className="modal-header"><h2>{horarioAEditar ? 'Editar Horario' : 'Agregar'}</h2><button className="close-button" onClick={handleCloseModal}>×</button></div><form onSubmit={handleFormSubmit} className="horario-form">{/* ...campos... */}<div className="form-group"><label>Día</label><select name="dia" value={nuevoHorario.dia} onChange={handleInputChange} required>{diasSemana.map(dia => (<option key={dia} value={dia}>{dia}</option>))}</select></div><div className="form-group"><label>Quirófano</label><select name="quirofano" value={nuevoHorario.quirofano} onChange={handleInputChange} required disabled={quirofanos.filter(q => q.estado === 'disponible').length === 0}><option value="">{quirofanos.filter(q => q.estado === 'disponible').length === 0 ? "No disponibles" : "Seleccionar"}</option>{quirofanos.filter(q => q.estado === 'disponible').map(q => (<option key={q.id} value={q.nombre} translate="no">{q.nombre} - {q.equipamiento}</option>))}</select></div><div className="form-group"><label>Hora inicio</label><span className="selected-time-display">{nuevoHorario.horaInicio || 'Selecciona'}</span><div className="time-grid-container">{horasDisponibles.map((hora) => (<button key={hora.valor} type="button" className={`time-slot-button ${nuevoHorario.horaInicio === hora.valor ? 'selected' : ''}`} value={hora.valor} onClick={handleInputChange}>{hora.display}</button>))}</div></div><div className="form-group"><label>Duración</label><select name="duracion" value={nuevoHorario.duracion} onChange={handleInputChange} required>{[2,3,4,5,6,7].map(h => (<option key={h} value={h}>{h} h</option>))}</select></div><div className="form-group"><label>Cirugía</label><select name="tipoCirugia" value={nuevoHorario.tipoCirugia} onChange={handleInputChange} required><option value="">Seleccionar</option>{tiposCirugia.map((tipo, i) => (<option key={i} value={tipo}>{tipo}</option>))}</select></div><div className="form-group"><label>Especialista</label><select name="especialista" value={nuevoHorario.especialista} onChange={handleInputChange} required><option value="">Seleccionar</option>{especialistas.map((esp, i) => (<option key={i} value={esp}>{esp}</option>))}</select></div><div className="form-group"><label>Paciente</label><input type="text" name="paciente" value={nuevoHorario.paciente} onChange={handleInputChange} placeholder="Nombre" required /></div><div className="modal-actions"><button type="button" onClick={handleCloseModal} className="btn-cancelar">Cancelar</button><button type="submit" className="btn-guardar">{horarioAEditar ? 'Guardar Cambios' : 'Guardar'}</button></div></form></div></div>)}
+      {showGestionQuirofanos && ( <div className="modal-overlay"><div className="modal-quirofanos"><div className="modal-header"><h2>Gestión Quirófanos</h2><button className="close-button" onClick={() => setShowGestionQuirofanos(false)}>×</button></div><form onSubmit={handleAgregarQuirofano} className="form-agregar-quirofano"><h3>Agregar Sala</h3><div className="form-agregar-inputs"><input type="text" name="nombre" placeholder="Nombre" value={nuevoQuirofano.nombre} onChange={handleQuirofanoFormChange} required /><select name="equipamiento" value={nuevoQuirofano.equipamiento} onChange={handleQuirofanoFormChange}><option>Básico</option><option>Avanzado</option><option>Inteligente</option><option>Robótico</option></select><button type="submit" className="btn-guardar-quirofano">➕</button></div></form><div className="quirofanos-grid-modal">{quirofanos.length === 0 ? (<p className="lista-vacia" style={{gridColumn: '1 / -1'}}>No hay.</p>) : (quirofanos.map(q => { let t = '✅ Disp'; let bt = 'Poner 🔴'; let disBtn = false; if (q.estado === 'ocupado'){ t='🔴 Ocupado'; bt='Poner 🛠️'; disBtn=tieneCirugiasAsignadas(q.nombre); } else if (q.estado === 'mantenimiento'){ t='🛠️ Manto'; bt='Poner ✅'; } const disDel=tieneCirugiasAsignadas(q.nombre); return (<div key={q.id} className={`quirofano-card-modal ${q.estado}`}><h3 translate="no">{q.nombre}</h3><p className={`estado ${q.estado}`}>{t}</p><p className="equipamiento">Eq: {q.equipamiento}</p><div className="quirofano-actions-modal"><button className="btn-editar-quirofano" disabled={disBtn} onClick={() => handleToggleQuirofanoEstado(q.id)} title={disBtn?"Tiene cirugías": "Cambiar"}>{bt}</button>{quirofanos.length > 1 && (<button className="btn-eliminar-quirofano" disabled={disDel} onClick={() => handleEliminarQuirofano(q.id, q.nombre)} title={disDel?"Tiene cirugías": "Eliminar"}>🗑️</button>)}</div></div>); }))}</div><div className="modal-actions"><button onClick={() => setShowGestionQuirofanos(false)} className="btn-cerrar-quirofanos">Cerrar</button></div></div></div>)}
+      {showListaEdicion && ( <div className="modal-overlay"><div className="modal-lista-edicion"><div className="modal-header"><h2>Cambiar Estado ({diaSeleccionado})</h2><button className="close-button" onClick={() => setShowListaEdicion(false)}>×</button></div><div className="lista-edicion-scroll">{getHorariosDelDia().length === 0 ? (<p className="lista-vacia">No hay horarios.</p>) : (getHorariosDelDia().map(horario => (<div key={horario.id} className="lista-edicion-item"><div className="lista-edicion-info"><span className="lista-edicion-titulo">{horario.cirugia} ({horario.paciente})</span><span className="lista-edicion-detalle"><span translate="no">{horario.quirofano}</span> | {horario.horaInicio} - {horario.horaFin}</span></div><select className="select-estado-lista" value={horario.tipo} onChange={(e) => handleStatusChangeFromList(horario.id, e.target.value)} style={{ borderLeft: `5px solid ${horario.color || '#ccc'}`, paddingLeft: '5px' }}>{statusOptions.map(statusKey => (<option key={statusKey} value={statusKey}>{statusMap[statusKey].texto}</option>))}</select></div>)))}</div></div></div>)}
+      {showDetalleModal && detalleHorario && ( <div className="modal-overlay"><div className="modal-detalle-horario"><div className="modal-header" style={{backgroundColor: detalleHorario.color}}><h2>Detalles</h2><button className="close-button" onClick={() => setShowDetalleModal(false)}>×</button></div><div className="detalle-content"><div className="detalle-item full-width" style={{borderLeftColor: detalleHorario.color}}><label>Cirugía</label><span>{detalleHorario.cirugia}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Paciente</label><span>{detalleHorario.paciente}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Especialista</label><span>{detalleHorario.especialista}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Quirófano</label><span translate="no">{detalleHorario.quirofano}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Día</label><span>{detalleHorario.dia}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Inicio</label><span>{detalleHorario.horaInicio}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Fin</label><span>{detalleHorario.horaFin}</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Duración</label><span>{detalleHorario.duracion}h</span></div><div className="detalle-item" style={{borderLeftColor: detalleHorario.color}}><label>Estado</label><span style={{color: detalleHorario.color, fontWeight:'bold'}}>{statusMap[detalleHorario.tipo]?.texto || detalleHorario.tipo}</span></div></div><div className="modal-actions-detalle"><button onClick={() => { setShowDetalleModal(false); handleEditarHorario(detalleHorario); }} className="btn-guardar">✏️ Editar</button><button onClick={() => setShowDetalleModal(false)} className="btn-cancelar">Cerrar</button></div></div></div>)}
+      <EmergenciaModal isOpen={showEmergenciaModal} onClose={() => setShowEmergenciaModal(false)} onConfirm={handleEmergenciaConfirm} />
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Quirófano</label>
-                  <select 
-                    name="quirofano" 
-                    value={nuevoHorario.quirofano} 
-                    onChange={(e) => setNuevoHorario({...nuevoHorario, quirofano: e.target.value})}
-                    required
-                  >
-                    <option value="">Seleccionar quirófano</option>
-                    {quirofanos.filter(q => q.estado === 'disponible').map(quirofano => (
-                      <option key={quirofano.id} value={quirofano.nombre}>
-                        {quirofano.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Duración (horas)</label>
-                  <select 
-                    name="duracion" 
-                    value={nuevoHorario.duracion} 
-                    onChange={(e) => setNuevoHorario({...nuevoHorario, duracion: e.target.value})}
-                  >
-                    <option value="1">1 hora</option>
-                    <option value="2">2 horas</option>
-                    <option value="3">3 horas</option>
-                    <option value="4">4 horas</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Tipo de Cirugía</label>
-                <input 
-                  type="text" 
-                  name="cirugia" 
-                  value={nuevoHorario.cirugia} 
-                  onChange={(e) => setNuevoHorario({...nuevoHorario, cirugia: e.target.value})} 
-                  placeholder="Ej: Cirugía Cardíaca, Abdominal, etc."
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Especialista Asignado</label>
-                <input 
-                  type="text" 
-                  name="especialista" 
-                  value={nuevoHorario.especialista} 
-                  onChange={(e) => setNuevoHorario({...nuevoHorario, especialista: e.target.value})} 
-                  placeholder="Nombre del especialista"
-                  required
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowRegistrarHorario(false)} className="btn-cancelar">
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-confirmar">
-                  Guardar Horario
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <EmergenciaModal
-        isOpen={showEmergenciaModal}
-        onClose={() => setShowEmergenciaModal(false)}
-        onConfirm={handleEmergenciaConfirm}
-      />
     </div>
   );
 };

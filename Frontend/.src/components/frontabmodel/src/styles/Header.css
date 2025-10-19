@@ -72,3 +72,64 @@
   font-size: 12px;
   opacity: 0.9;
 }
+
+/* Header.css */
+
+/* ... (tus estilos existentes para .app-header, .header-left, etc.) ... */
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Espacio entre info de usuario y botón */
+}
+
+.header-user-info {
+  display: flex;
+  flex-direction: column; /* Apila nombre, rol, especialidad */
+  align-items: flex-end; /* Alinea el texto a la derecha */
+  text-align: right;
+  gap: 2px; /* Espacio pequeño entre líneas */
+}
+
+.user-name-header {
+  font-weight: bold;
+  font-size: 15px;
+  color: white;
+}
+
+.user-role-header,
+.user-specialty-header {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8); /* Blanco semi-transparente */
+}
+
+/* --- ESTILOS PARA EL NUEVO BOTÓN EN EL HEADER --- */
+.logout-button-header {
+  background-color: #dc3545; /* Rojo */
+  color: white;
+  border: none;
+  padding: 8px 15px; /* Ajusta el padding si es necesario */
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500; /* Puedes hacerlo bold si prefieres */
+  font-size: 13px; /* Tamaño de fuente */
+  transition: background-color 0.2s ease;
+  white-space: nowrap; /* Evita que el texto se parta */
+}
+
+.logout-button-header:hover {
+  background-color: #c82333; /* Rojo más oscuro al pasar el ratón */
+}
+/* --- FIN ESTILOS BOTÓN --- */
+
+/* ... (otros estilos si los tienes) ... */
+
+/* --- ESTILO PARA MENSAJE DE BIENVENIDA --- */
+.welcome-message-header {
+  color: rgba(255, 255, 255, 0.9); /* Blanco un poco tenue */
+  font-size: 14px;
+  font-weight: 500;
+  /* Podrías añadir un margin-right si quieres más separación */
+  /* margin-right: 10px; */
+}
+/* --- FIN ESTILO MENSAJE --- */

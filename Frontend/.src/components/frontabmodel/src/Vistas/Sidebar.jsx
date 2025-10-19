@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { NavLink } from 'react-router-dom';
 import '../styles/Sidebar.css';
+import { NavLink } from 'react-router-dom';
 
-const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
+const Sidebar = ({ user, onProfileUpdate, onToggle }) => {
   const [archivo, setArchivo] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
+
+  // Lógica de Roles para Navegación
+  const userRole = user?.role?.toLowerCase() || '';
+  const isAdmin = userRole === 'administrador';
+  const isEspecialista = userRole === 'especialista' || userRole === 'espacialista'; // Revisa si 'espacialista' es correcto
 
   const handleFileChange = (e) => {
     setArchivo(e.target.files[0]);
@@ -16,11 +21,9 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
       alert('Por favor, selecciona un archivo primero.');
       return;
     }
-
     setSubiendo(true);
     const formData = new FormData();
     formData.append('fotoPerfil', archivo);
-
     try {
       const token = localStorage.getItem('token');
       await axios.put('http://localhost:4001/api/usuarios/perfil/foto', formData, {
@@ -30,104 +33,91 @@ const Sidebar = ({ user, onLogout, onProfileUpdate, onToggle }) => {
         }
       });
       alert('¡Foto de perfil actualizada!');
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
+      if (onProfileUpdate) onProfileUpdate();
     } catch (error) {
-      console.error('Error al subir la foto:', error);
-      alert('Error al subir la foto.');
+      console.error('Error al subir la foto:', error.response?.data || error.message);
+      alert('Error al subir la foto. Verifica la consola.');
     } finally {
       setSubiendo(false);
       setArchivo(null);
+      const fileInput = document.getElementById('file-upload');
+      if (fileInput) fileInput.value = '';
     }
   };
-  
+
   if (!user) {
-    return <aside className="app-sidebar"></aside>; 
+    return <aside className="app-sidebar"></aside>;
   }
 
-  // MANTENER LÓGICA DE ROLES ORIGINAL
-  const userRole = user.role ? user.role.toLowerCase() : '';
-  const isAdmin = userRole === 'administrador';
-  const isEspecialista = userRole === 'especialista' || userRole === 'espacialista';
-
-  const imageUrl = user.foto_perfil 
+  const imageUrl = user.foto_perfil
     ? `http://localhost:4001/${user.foto_perfil.replace(/\\/g, '/')}`
-    : null;
-  const nombreCompleto = user.apellido_materno && user.apellido_materno !== 'null' 
-    ? `${user.nombre} ${user.apellido_paterno} ${user.apellido_materno}`
-    : `${user.nombre} ${user.apellido_paterno}`;
+    : null; // Considera una imagen placeholder aquí
+
   const inicial = user.nombre ? user.nombre.charAt(0).toUpperCase() : '?';
 
   return (
     <aside className="app-sidebar">
-      {/* SECCIÓN DEL PERFIL ORIGINAL - SIN CAMBIOS */}
+      {/* Perfil */}
       <div className="profile">
+        {/* Contenedor Imagen y Botón Subir */}
         <div className="profile-image-container">
           {imageUrl ? (
-            <img src={imageUrl} alt="Foto de perfil" className="profile-image" />
+            <img src={imageUrl} alt="Foto de perfil" className="profile-image" onError={(e) => { e.target.onerror = null; e.target.src = '/path/to/default/avatar.png'; }} /> // Añade una imagen por defecto si falla
           ) : (
             <div className="profile-icon">{inicial}</div>
           )}
-          <label htmlFor="file-upload" className="upload-icon-label">📷</label>
-          <input 
-            id="file-upload" 
-            type="file" 
-            className="hidden-file-input" 
-            onChange={handleFileChange} 
-            accept="image/*"
+          <label htmlFor="file-upload" className="upload-icon-label" title="Cambiar foto">📷</label>
+          <input
+            id="file-upload" type="file" className="hidden-file-input"
+            onChange={handleFileChange} accept="image/*"
           />
         </div>
-
+        {/* Botón confirmar foto */}
         {archivo && (
           <button onClick={handleImageUpload} className="upload-button" disabled={subiendo}>
             {subiendo ? 'Subiendo...' : 'Confirmar Foto'}
           </button>
         )}
-        
-        <h2>BIENVENIDO</h2>
-        <h2 className="profile-name">{nombreCompleto}</h2>
-        <p className="profile-role">{user.role}</p>
-        {user.especialidad && <p className="profile-detail">{user.especialidad}</p>}
+
+        {/* ----- MENSAJE AÑADIDO AQUÍ ----- */}
+        <h2 className="sidebar-welcome-message">BIENVENIDO</h2>
+
       </div>
 
-      {/* PESTAÑAS SIN QUIROFANOS */}
+      {/* Navegación */}
       <nav className="sidebar-nav">
-        {/* ENLACES PARA ADMIN - SIN QUIROFANOS */}
-        {isAdmin && (
-          <>
-            <NavLink to="/pacientes" className="nav-link">Pacientes</NavLink>
-            <NavLink to="/especialistas" className="nav-link">Especialistas</NavLink>
-            {/* 🗑️ QUITADO: Quirófanos */}
-            <NavLink to="/equipo-medico" className="nav-link">Equipo Médico</NavLink>
-            <NavLink to="/horarios" className="nav-link">Horarios</NavLink>
-            <NavLink to="/cirugias" className="nav-link">Cirugías</NavLink>
-          </>
-        )}
-        
-        {/* ENLACES PARA ESPECIALISTA */}
-        {isEspecialista && (
-          <>
-            <NavLink to="/pacientes" className="nav-link">Pacientes</NavLink>
-            <NavLink to="/citas" className="nav-link">Citas</NavLink>
-            <NavLink to="/horarios" className="nav-link">Mis Horarios</NavLink>
-          </>
-        )}
-      </nav>
+       {isAdmin && (
+         <>
+           <NavLink to="/pacientes" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Pacientes</NavLink>
+           <NavLink to="/especialistas" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Especialistas</NavLink>
+           <NavLink to="/equipo-medico" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Equipo Médico</NavLink>
+           <NavLink to="/horarios" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Horarios</NavLink>
+           <NavLink to="/cirugias" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Cirugías</NavLink>
+         </>
+       )}
+       {isEspecialista && (
+         <>
+           <NavLink to="/pacientes" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Pacientes</NavLink>
+           <NavLink to="/citas" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Citas</NavLink> {/* Asegúrate que esta ruta existe */}
+           <NavLink to="/horarios" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Mis Horarios</NavLink>
+         </>
+       )}
+     </nav>
 
-      <div style={{flex: 1}}></div> 
 
+      {/* Divisor y Botón de Ocultar */}
+      {/* Usamos flex: 1 en la navegación o un div vacío para empujar esto hacia abajo */}
+      <div style={{ flex: 1 }}></div> {/* Empuja el divisor hacia abajo */}
       <div className="sidebar-divider">
         {onToggle && (
-            <button className="toggle-sidebar-btn" onClick={onToggle}>
-                ◀
-            </button>
+          <button className="toggle-sidebar-btn" onClick={onToggle} title="Ocultar menú">
+            ◀
+          </button>
         )}
       </div>
 
-      <button onClick={onLogout} className="logout-button">
-        Cerrar Sesión
-      </button>
+      {/* Botón Cerrar Sesión ELIMINADO de aquí */}
+
     </aside>
   );
 };
