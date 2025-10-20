@@ -342,8 +342,7 @@ const Especialistas = () => {
                   <option value="">Seleccionar especialidad</option>
                   {especialidades.map(e => (<option key={e.id_especialidad} value={e.id_especialidad}>{e.descripcion}</option>))}
                 </select>
-                <button type="button" className="btn-agregar-opcion" onClick={() => abrirModalGestion('especialidades')} title="Gestionar Especialidades">+</button>
-              </div>
+                 </div>
               {fieldErrors.id_especialidad && <span className="error-text">{fieldErrors.id_especialidad}</span>}
             </div>
 
@@ -355,7 +354,6 @@ const Especialistas = () => {
                   <option value="">Seleccionar rol</option>
                   {roles.map(r => (<option key={r.id_rol} value={r.id_rol}>{r.descripcion}</option>))}
                 </select>
-                 <button type="button" className="btn-agregar-opcion" onClick={() => abrirModalGestion('roles')} title="Gestionar Roles">+</button>
               </div>
               {fieldErrors.id_rol && <span className="error-text">{fieldErrors.id_rol}</span>}
             </div>
@@ -411,52 +409,7 @@ const Especialistas = () => {
         </div>
       </div>
 
-     {/* ----- NUEVO MODAL DE GESTIÓN ----- */}
-      {showGestionModal && (
-        <div className="modal-overlay">
-          <div className="modal-gestion"> {/* Clase CSS nueva */}
-            <div className="modal-header">
-              <h3>Gestionar {gestionTipo === 'roles' ? 'Roles' : 'Especialidades'}</h3>
-              <button className="close-button" onClick={cerrarModalGestion}>×</button>
-            </div>
-            <div className="modal-content gestion-content"> {/* Clase CSS nueva */}
-              {/* Formulario para agregar nuevo */}
-              <div className="gestion-add-form">
-                <input
-                  type="text"
-                  placeholder={`Nueva ${gestionTipo === 'roles' ? 'Rol' : 'Especialidad'}`}
-                  value={nuevoItemNombre}
-                  onChange={handleNuevoItemChange}
-                  maxLength="50"
-                />
-                <button onClick={agregarNuevoItem} className="btn-guardar-item">➕</button>
-              </div>
 
-              {/* Lista de existentes */}
-              <ul className="gestion-item-list">
-                {listaGestion.length === 0 ? (
-                    <li className="gestion-item-empty">No hay {gestionTipo} definidos.</li>
-                ) : (
-                    listaGestion.map(item => (
-                    <li key={item[idKey]} className="gestion-item">
-                        <span>{item.descripcion}</span>
-                        {/* No permitir eliminar el rol 'Administrador' o 'Especialista' (ejemplo) */}
-                        {!(gestionTipo === 'roles' && ['Administrador', 'Especialista'].includes(item.descripcion)) && (
-                            <button
-                                onClick={() => eliminarItem(item[idKey])}
-                                className="btn-eliminar-item"
-                            >
-                                🗑️
-                            </button>
-                        )}
-                    </li>
-                    ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )} {/* ----- FIN NUEVO MODAL ----- */}
 
     </div>
   );

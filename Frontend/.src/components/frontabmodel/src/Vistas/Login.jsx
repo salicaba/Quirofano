@@ -7,6 +7,7 @@ const Login = ({ onLogin }) => {
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [errorLogin, setErrorLogin] = useState('');
     
   const handleSubmit = async (evento) => {
     evento.preventDefault();
@@ -16,13 +17,16 @@ const Login = ({ onLogin }) => {
         cedula: cedula,
         password: password
       });
-      console.log('1. Login exitoso. Enviando token a App.jsx:', response.data);
+      //console.log('1. Login exitoso. Enviando token a App.jsx:', response.data);
       onLogin(response.data);
-    } catch (err) {
-      setError('Cédula o contraseña incorrectas.');
-      console.error('Error de autenticación:', err);
-    }
+    }  catch (err) {
+        setErrorLogin('Cédula o contraseña incorrectas. Por favor, verifique sus credenciales.');
+        console.error('Error de autenticación:', err);
+      }
   };
+
+   console.log('EN LA TABLA QUIROFONOS CAMBIE LA DE NOMBRE LA TERCERA COLUMNA POR "estado"');
+
   return (
     <div className="login-container">
       <div className="login-box">
@@ -30,7 +34,8 @@ const Login = ({ onLogin }) => {
           <span className="logo-icon">+</span> 
         </div>
         <h1 className="title">ADMODEL</h1>
-        <p className="subtitle">Login Modificado el 16-10-2025</p>
+        <p className="subtitle">Login Modificado el 20-10-25(hice cambios en la base de datos, inspecciona para ver en cosole)</p>
+       
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="input-group">
             {/* CORRECCIÓN 4 (Sugerencia): Cambiado para mayor claridad */}
@@ -57,8 +62,20 @@ const Login = ({ onLogin }) => {
             INGRESAR
           </button>
         </form>
+        {/*MOSTRAR ERROR SI FALLAN LAS CREDENCIALES*/}
+        {errorLogin && (
+         <div className="error-alert">
+            {errorLogin}
+         </div>
+        )}
+         
+
       </div>
     </div>
+   
+    
+
+    
   );
 }; // <-- La llave que cierra el componente DEBE estar aquí, al final.
 

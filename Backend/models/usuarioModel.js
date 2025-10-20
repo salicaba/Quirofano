@@ -143,7 +143,31 @@ const Usuario = {
         console.error('Error al actualizar foto de perfil:', error);
         throw error;
     }
+  },
+
+  async findEspecialistas() {
+  const query = `
+    SELECT 
+      mu.id_medicos, mu.nombre, mu.apellido_paterno, mu.apellido_materno,
+      mu.cedula_profecional, mu.foto_perfil, mu.telefono,
+      mu.id_rol, mu.id_especialidad,
+      r.descripcion AS role, 
+      e.descripcion AS especialidad 
+    FROM 
+      medicos_usuarios mu
+    LEFT JOIN roles r ON mu.id_rol = r.id_rol
+    LEFT JOIN especialidades e ON mu.id_especialidad = e.id_especialidad
+    ORDER BY mu.nombre, mu.apellido_paterno
+  `;
+  
+  try {
+    const { rows } = await pool.query(query);
+    return rows;
+  } catch (error) {
+    console.error('Error al obtener especialistas en el modelo:', error);
+    throw error;
   }
+}
 };
 
 module.exports = Usuario;

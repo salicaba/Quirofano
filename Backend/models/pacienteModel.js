@@ -27,15 +27,13 @@ const Paciente = {
       SELECT 
         pa.id_paciente,
         pa.nombre,
-        pa.apellido, 
-        pa.sexo,
-        TO_CHAR(pa.fecha_nacimiento, 'YYYY-MM-DD') as fecha_nacimiento,
-        pa.tipo_sangre,
-        e.numero_expediente,
-        e.procedencia
+        pa.apellido,
+        e.id_expediente,
+        e.numero_expediente
       FROM pacientes pa 
-      LEFT OUTER JOIN expedientes e ON pa.id_paciente = e.id_paciente
-      ORDER BY pa.id_paciente DESC
+      INNER JOIN expedientes e ON pa.id_paciente = e.id_paciente
+      WHERE pa.activo = true
+      ORDER BY pa.nombre, pa.apellido;
     `;
     const result = await pool.query(query);
     return result.rows;
@@ -68,6 +66,8 @@ const Paciente = {
     const result = await pool.query('DELETE FROM pacientes WHERE id_paciente = $1', [id_paciente]);
     return { deleted: result.rowCount > 0 };
   }
+
+  
 };
 
 module.exports = Paciente;

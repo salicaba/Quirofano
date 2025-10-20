@@ -25,7 +25,7 @@ const Header = ({ user, onLogout }) => {
     <header className="app-header">
       {/* Sección Izquierda (Título) */}
       <div className="header-left">
-        <h1 className="app-title">Hospital ADMODEL</h1>
+        <h1 className="app-title">Hospital ABMODEL</h1>
       </div>
 
       {/* Sección Derecha (Info Usuario + Logout) */}

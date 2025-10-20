@@ -1,6 +1,6 @@
 const Usuario = require('../models/usuarioModel');
 const bcrypt = require('bcryptjs');
-
+const pool = require('../config/db'); 
 
 exports.crearMedico = async (req, res) => {
   const { nombre, apellido_paterno, cedula_profecional, id_rol, id_especialidad, password } = req.body;
@@ -87,4 +87,15 @@ exports.subirFotoPerfil = async (req, res) => {
         console.error('Error al subir foto de perfil:', error);
         res.status(500).json({ msg: 'Error en el servidor' });
       }
+};
+
+exports.obtenerEspecialistas = async (req, res) => {
+  try {
+    const especialistas = await Usuario.findEspecialistas();
+    res.json(especialistas);
+  } catch (error) {
+    console.error('Error al obtener especialistas:', error);
+    res.status(500).json({ msg: 'Error al cargar los especialistas' });
+  }
+
 };

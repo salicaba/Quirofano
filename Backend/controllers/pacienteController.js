@@ -13,7 +13,7 @@ exports.crearPaciente = async (req, res) => {
     } = req.body;
 
     if (!nombre || !apellido || !tipo_sangre || !numero_expediente) {
-      return res.status(400).json({ 
+       return res.status(400).json({ 
         msg: 'Nombre, apellido, tipo de sangre y número de expediente son obligatorios' 
       });
     }
@@ -56,6 +56,7 @@ exports.actualizarPaciente = async(req, res) => {
     res.status(500).json({ msg: 'Error al actualizar el paciente' });
   }
 };
+
 
 exports.eliminarPaciente = async(req, res) => {
   try {

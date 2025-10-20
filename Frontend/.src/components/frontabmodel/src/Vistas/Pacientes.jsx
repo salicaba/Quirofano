@@ -4,7 +4,6 @@ import '../styles/Pacientes.css';
 import { exportarPacientesPDF, exportarPacienteIndividualPDF } from '../utils/ExportarPDF';
 
 const Pacientes = () => { 
- 
   const [nuevoPaciente, setNuevoPaciente] = useState({
     nombre: '',
     apellido: '',
@@ -42,37 +41,58 @@ const Pacientes = () => {
       return null;
     },
 
-    // Formato: EXP-2024-001
+    // Validación más flexible para expediente
     numero_expediente: (valor) => {
       if (!valor) return null; // Opcional
-      const regex = /^EXP-\d{4}-\d{3}$/;
-      if (!regex.test(valor)) return 'Formato inválido. Use: EXP-AAAA-NNN (ej: EXP-2024-001)';
+      
+      // Convertir a mayúsculas para validación
+      const valorUpper = valor.toUpperCase();
+      
+      // Permitir formato con o sin guiones durante la escritura
+      const regexParcial = /^EXP-?\d{0,4}-?\d{0,3}$/;
+      if (!regexParcial.test(valorUpper)) {
+        return 'Formato: EXP-AAAA-NNN (ej: EXP-2024-001)';
+      }
+      
+      // Validación más estricta solo cuando el campo pierde el foco o se envía
+      if (valorUpper.includes('-') || valorUpper.length >= 3) {
+        const partes = valorUpper.split('-');
+        let año, numero;
+        
+        if (partes.length === 1) {
+          // Formato: EXP2024001
+          if (valorUpper.startsWith('EXP') && valorUpper.length > 3) {
+            const contenido = valorUpper.slice(3);
+            año = contenido.slice(0, 4);
+            numero = contenido.slice(4, 7);
+          }
+        } else if (partes.length === 2) {
+          // Formato: EXP-2024001
+          año = partes[1].slice(0, 4);
+          numero = partes[1].slice(4, 7);
+        } else if (partes.length === 3) {
+          // Formato: EXP-2024-001
+          año = partes[1];
+          numero = partes[2];
+        }
+        
+        if (año && año.length !== 4) {
+          return 'El año debe tener 4 dígitos';
+        }
+        if (numero && numero.length !== 3) {
+          return 'El número debe tener 3 dígitos';
+        }
+      }
+      
       return null;
     }
   };
 
-  // --- MÉTODOS DE FORMATEO ---
+  // --- MÉTODOS DE FORMATEO SIMPLIFICADOS ---
   const formatearExpediente = (valor) => {
-    // Eliminar todo excepto letras, números y guiones
-    let cleaned = valor.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
-    
-    if (cleaned.startsWith('EXP')) {
-      cleaned = cleaned.slice(3);
-    }
-    
-    // Asegurar que empiece con EXP-
-    if (!cleaned.startsWith('EXP-') && cleaned.length > 0) {
-      cleaned = 'EXP-' + cleaned.replace(/^EXP/, '');
-    }
-    
-    // Aplicar formato automático
-    if (cleaned.length <= 4) {
-      return cleaned;
-    } else if (cleaned.length <= 9) {
-      return cleaned.slice(0, 4) + '-' + cleaned.slice(4);
-    } else {
-      return cleaned.slice(0, 4) + '-' + cleaned.slice(4, 8) + '-' + cleaned.slice(8, 11);
-    }
+    // Solo limpiar espacios y convertir a mayúsculas
+    // No forzar formato automático que moleste al usuario
+    return valor.toUpperCase().replace(/\s/g, '');
   };
 
   const formatearNombre = (valor) => {
