@@ -1,27 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/EquipoMedico.css'; // Tus estilos bonitos
+import '../styles/EquipoMedico.css';
 
 const EquipoMedico = () => {
   // --- ESTADOS ---
-  const [equipos, setEquipos] = useState([]); // Lista de nombres de equipos
-  const [especialistasDisponibles, setEspecialistasDisponibles] = useState([]); // Lista de todos los médicos
-  const [miembrosEquipoActual, setMiembrosEquipoActual] = useState([]); // Miembros del equipo seleccionado
+  const [equipos, setEquipos] = useState([]);
+  const [especialistasDisponibles, setEspecialistasDisponibles] = useState([]);
+  const [miembrosEquipoActual, setMiembrosEquipoActual] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [userRole, setUserRole] = useState(null);
   
-  // Estado para el formulario de creación (adaptado a la lógica funcional)
+  // Estado para el formulario de creación
   const [formCrearState, setFormCrearState] = useState({ nombreEquipo: '', id_medico: '' });
   
-  const [equipoSeleccionadoNombre, setEquipoSeleccionadoNombre] = useState(null); // Nombre del equipo en gestión
-  const [gestionandoEspecialistas, setGestionandoEspecialistas] = useState(false); // Estado para la vista de gestión
+  const [equipoSeleccionadoNombre, setEquipoSeleccionadoNombre] = useState(null);
+  const [gestionandoEspecialistas, setGestionandoEspecialistas] = useState(false);
 
   const API_BASE_URL = 'http://localhost:4001/api';
 
   // --- CARGA INICIAL DE DATOS ---
   useEffect(() => {
     cargarDatosIniciales();
+    obtenerRolUsuario();
   }, []);
+
+  // Función para obtener el rol del usuario
+  const obtenerRolUsuario = () => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        const rol = user.role || user.rol || 'Especialista'; // Busca ambos por si acaso
+        setUserRole(rol);
+        console.log('Rol del usuario detectado:', rol);
+      } catch (error) {
+        console.error('Error al parsear user data:', error);
+        setUserRole('Especialista');
+      }
+    } else {
+      setUserRole('Especialista');
+    }
+  };
 
   const cargarDatosIniciales = async () => {
     setLoading(true);
@@ -34,9 +54,9 @@ const EquipoMedico = () => {
     }
     const headers = { Authorization: `Bearer ${token}` };
     try {
-      const [resEquipos, resEspecialistas] = await Promise.all([
-        axios.get(`${API_BASE_URL}/equipos`, { headers }),      // Obtiene nombres de equipos
-        axios.get(`${API_BASE_URL}/usuarios`, { headers })       // Obtiene todos los médicos
+       const [resEquipos, resEspecialistas] = await Promise.all([
+        axios.get(`${API_BASE_URL}/equipos`, { headers }),
+        axios.get(`${API_BASE_URL}/usuarios`, { headers })
       ]);
       setEquipos(Array.isArray(resEquipos.data) ? resEquipos.data : []);
       setEspecialistasDisponibles(Array.isArray(resEspecialistas.data) ? resEspecialistas.data : []);
@@ -52,7 +72,7 @@ const EquipoMedico = () => {
     setFormCrearState({ ...formCrearState, [e.target.name]: e.target.value });
   };
 
-  // --- LÓGICA PASO 1: CREAR EQUIPO (añadiendo el primer miembro) ---
+  // --- LÓGICA PASO 1: CREAR EQUIPO ---
   const handleCrearEquipo = async (e) => {
     e.preventDefault();
     if (!formCrearState.nombreEquipo || !formCrearState.id_medico) {
@@ -72,7 +92,6 @@ const EquipoMedico = () => {
       }
       setFormCrearState({ nombreEquipo: '', id_medico: '' });
       alert(`Equipo "${data.equipo.nombre}" creado con el primer miembro.`);
-      // Automáticamente seleccionamos el equipo recién creado para gestionar
       handleGestionarEspecialistas(data.equipo.nombre);
 
     } catch (err) {
@@ -112,7 +131,6 @@ const EquipoMedico = () => {
         nombre: equipoSeleccionadoNombre,
         id_medico: idMedico
       }, { headers: { Authorization: `Bearer ${token}` } });
-      // Volver a cargar los miembros para reflejar el cambio
       handleGestionarEspecialistas(equipoSeleccionadoNombre);
     } catch (err) {
       setError(err.response?.data?.msg || 'Error al agregar especialista.');
@@ -136,7 +154,7 @@ const EquipoMedico = () => {
   };
   
   const handleEliminarEquipoCompleto = async (e, nombreEquipo) => {
-       e.stopPropagation(); // Evita que se seleccione el equipo al hacer clic en eliminar
+       e.stopPropagation();
        if (window.confirm(`¿Está seguro de eliminar el equipo "${nombreEquipo}" completo?`)) {
           const token = localStorage.getItem('token');
           setError('');
@@ -156,9 +174,19 @@ const EquipoMedico = () => {
     setEquipoSeleccionadoNombre(null);
     setGestionandoEspecialistas(false);
     setMiembrosEquipoActual([]);
-    // Recargamos los equipos por si se creó uno nuevo
     cargarDatosIniciales();
   };
+
+  // --- FUNCIÓN PARA VERIFICAR SI ES ADMIN ---
+  const esAdministrador = () => {
+    console.log('Rol actual del usuario:', userRole); // Debug
+    return userRole === 'Administrador' || userRole === 'Administrador' || userRole === 'ADMIN';
+  };
+
+  // Mostrar loading mientras se determina el rol
+  if (userRole === null) {
+    return <div>Cargando...</div>;
+  }
 
   // --- RENDERIZADO ---
 
@@ -198,14 +226,16 @@ const EquipoMedico = () => {
                           <p className="especialidad-especialista">{especialista.especialidad}</p>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => handleAgregarEspecialista(especialista.id_medicos)}
-                        className="btn-agregar-especialista-bd"
-                        disabled={yaEstaEnEquipo}
-                        title={yaEstaEnEquipo ? "Ya está en el equipo" : "Agregar al equipo"}
-                      >
-                        {yaEstaEnEquipo ? '✅' : '➕'}
-                      </button>
+                      {esAdministrador() && (
+                        <button 
+                          onClick={() => handleAgregarEspecialista(especialista.id_medicos)}
+                          className="btn-agregar-especialista-bd"
+                          disabled={yaEstaEnEquipo}
+                          title={yaEstaEnEquipo ? "Ya está en el equipo" : "Agregar al equipo"}
+                        >
+                          {yaEstaEnEquipo ? '✅' : '➕'}
+                        </button>
+                      )}
                     </div>
                   );
                 })
@@ -233,13 +263,15 @@ const EquipoMedico = () => {
                         <p className="especialidad-especialista">{miembro.especialidad}</p>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => handleEliminarEspecialista(miembro.id_equipomedico)}
-                      className="btn-eliminar-especialista"
-                      title="Eliminar especialista"
-                    >
-                      🗑️
-                    </button>
+                    {esAdministrador() && (
+                      <button 
+                        onClick={() => handleEliminarEspecialista(miembro.id_equipomedico)}
+                        className="btn-eliminar-especialista"
+                        title="Eliminar especialista"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -263,48 +295,50 @@ const EquipoMedico = () => {
       {error && <p className="error-message">{error}</p>}
       
       <div className="pacientes-content-layout">
-        {/* FORMULARIO IZQUIERDO */}
-        <div className="form-paciente">
-          <h3>Crear Nuevo Equipo</h3>
-          <p>Crea un equipo asignando un nombre y su primer miembro.</p>
-          <form onSubmit={handleCrearEquipo}>
-            <div className="form-group">
-              <label>Nombre del Equipo:</label>
-              <input 
-                type="text" 
-                name="nombreEquipo" 
-                value={formCrearState.nombreEquipo} 
-                onChange={handleInputChangeCrear} 
-                placeholder="Ej: Equipo Cardíaco Avanzado" 
-                required
-              />
-            </div>
+        {/* FORMULARIO IZQUIERDO - SOLO PARA ADMIN */}
+        {esAdministrador() && (
+          <div className="form-paciente">
+            <h3>Crear Nuevo Equipo</h3>
+            <p>Crea un equipo asignando un nombre y su primer miembro.</p>
+            <form onSubmit={handleCrearEquipo}>
+              <div className="form-group">
+                <label>Nombre del Equipo:</label>
+                <input 
+                  type="text" 
+                  name="nombreEquipo" 
+                  value={formCrearState.nombreEquipo} 
+                  onChange={handleInputChangeCrear} 
+                  placeholder="Ej: Equipo Cardíaco Avanzado" 
+                  required
+                />
+              </div>
 
-            <div className="form-group">
-              <label>Especialista Inicial:</label>
-              <select 
-                name="id_medico" 
-                value={formCrearState.id_medico} 
-                onChange={handleInputChangeCrear}
-                required
-              >
-                <option value="">Seleccionar especialista *</option>
-                {especialistasDisponibles.map(esp => (
-                  <option key={esp.id_medicos} value={esp.id_medicos}>
-                    Dr. {esp.nombre} {esp.apellido_paterno} ({esp.especialidad})
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="form-group">
+                <label>Especialista Inicial:</label>
+                <select 
+                  name="id_medico" 
+                  value={formCrearState.id_medico} 
+                  onChange={handleInputChangeCrear}
+                  required
+                >
+                  <option value="">Seleccionar especialista *</option>
+                  {especialistasDisponibles.map(esp => (
+                    <option key={esp.id_medicos} value={esp.id_medicos}>
+                      Dr. {esp.nombre} {esp.apellido_paterno} ({esp.especialidad})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <button type="submit" className="btn-agregar">
-              ➕ Crear Equipo
-            </button>
-          </form>
-        </div>
+              <button type="submit" className="btn-agregar">
+                ➕ Crear Equipo
+              </button>
+            </form>
+          </div>
+        )}
         
-        {/* LISTADO DERECHO */}
-        <div className="lista-pacientes-container">
+        {/* LISTADO DERECHO - PARA TODOS LOS USUARIOS */}
+        <div className="lista-pacientes-container" style={!esAdministrador() ? { width: '100%' } : {}}>
           <div className="header-lista">
             <h3>Listado de Equipos</h3>
             <span className="contador-equipos">{equipos.length} equipos</span>
@@ -320,16 +354,17 @@ const EquipoMedico = () => {
                   >
                     <div className="paciente-info-compacta">
                       <h4>{nombreEquipo}</h4>
-                      {/* Aquí podrías mostrar cuántos miembros tiene si la API lo devolviera */}
                     </div>
                     <div className="acciones-lista-equipo">
-                       <button 
-                         className="btn-eliminar-lista-equipo"
-                         title="Eliminar equipo completo"
-                         onClick={(e) => handleEliminarEquipoCompleto(e, nombreEquipo)}
-                       >
-                         🗑️
-                       </button>
+                       {esAdministrador() && (
+                         <button 
+                           className="btn-eliminar-lista-equipo"
+                           title="Eliminar equipo completo"
+                           onClick={(e) => handleEliminarEquipoCompleto(e, nombreEquipo)}
+                         >
+                           🗑️
+                         </button>
+                       )}
                        <div className="flecha-derecha">➡️</div>
                     </div>
                   </div>

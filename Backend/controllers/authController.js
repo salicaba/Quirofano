@@ -31,7 +31,19 @@ exports.login = async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
     console.log('5. Token generado con éxito.');
     
-    res.status(200).json({ token });
+    // MODIFICACIÓN: Enviar tanto el token como la información del usuario
+    res.status(200).json({ 
+      token,
+      user: {
+        id: user.id_medicos,
+        nombre: user.nombre,
+        apellido_paterno: user.apellido_paterno,
+        apellido_materno: user.apellido_materno,
+        cedula: user.cedula,
+        especialidad: user.especialidad,
+        role: user.role // Esto es crucial para el frontend
+      }
+    });
     console.log('✅ Respuesta 200 OK enviada al frontend.');
 
   } catch (error) {
@@ -40,23 +52,28 @@ exports.login = async (req, res) => {
   }
 };
 
-
 exports.obtenerPerfil = async (req, res) => {
-  
-  
   try {
-
+    // MODIFICACIÓN: Usar el id del token para buscar el usuario
     const user = await Usuario.findById(req.usuario.id);
    
     if (!user) {
       return res.status(404).json({ msg: 'Usuario no encontrado' });
     }
     
-    res.json(user);
- 
+    // MODIFICACIÓN: Enviar la misma estructura que en el login
+    res.json({
+      id: user.id_medicos,
+      nombre: user.nombre,
+      apellido_paterno: user.apellido_paterno,
+      apellido_materno: user.apellido_materno,
+      cedula: user.cedula,
+      especialidad: user.especialidad,
+      role: user.role
+    });
 
   } catch (error) {
-
+    console.error('Error al obtener perfil:', error);
     res.status(500).json({ msg: 'Error en el servidor' });
   }
 };

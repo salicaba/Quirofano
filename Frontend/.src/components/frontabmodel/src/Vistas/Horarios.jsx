@@ -3,9 +3,12 @@ import axios from 'axios';
 import EmergenciaModal from './EmergenciaModal';
 import '../styles/Horarios.css';
 
-// Versión SIN roles, Click muestra Detalles, 5 Estados
+// Versión CON roles, Especialistas pueden hacer emergencias, Admin gestiona todo
 const Horarios = () => {
-  const API_BASE_QUIROFANOS = 'http://localhost:4001/api/quirofano';
+  const API_BASE_QUIROFANOS = 'http://localhost:4001/api/quirofanos';
+
+  // --- ESTADOS PARA ROLES ---
+  const [userRole, setUserRole] = useState(null);
 
   // --- ESTADOS PARA MODALES ---
   const [showEmergenciaModal, setShowEmergenciaModal] = useState(false);
@@ -70,10 +73,34 @@ const Horarios = () => {
   const [horarios, setHorarios] = useState([]);
   const horariosDelDia = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00'];
 
-  // --- EFFECT PARA CARGAR QUIROFANOS ---
+  // --- EFFECT PARA CARGAR ROL Y QUIROFANOS ---
   useEffect(() => {
+    obtenerRolUsuario();
     cargarQuirofanos();
   }, []);
+
+  // --- FUNCIÓN PARA OBTENER ROL DEL USUARIO ---
+  const obtenerRolUsuario = () => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        const rol = user.role || user.rol || 'Especialista';
+        setUserRole(rol);
+        console.log('🔍 Rol detectado en Horarios:', rol);
+      } catch (error) {
+        console.error('Error al parsear user data:', error);
+        setUserRole('Especialista');
+      }
+    } else {
+      setUserRole('Especialista');
+    }
+  };
+
+  // --- FUNCIÓN PARA VERIFICAR SI ES ADMIN ---
+  const esAdministrador = () => {
+    return userRole === 'admin' || userRole === 'Administrador';
+  };
 
   const cargarQuirofanos = async () => {
     try {
@@ -84,14 +111,93 @@ const Horarios = () => {
     }
   };
 
+  // --- NUEVA FUNCIÓN: VERIFICAR DISPONIBILIDAD DE HORAS ---
+  const verificarDisponibilidadHoras = (horaInicio, duracion, quirofano, dia, horarioIdExcluir = null) => {
+    if (!horaInicio || !duracion || !quirofano) return true;
+
+    const horaFin = calcularHoraFin(horaInicio, duracion);
+    
+    // Verificar si hay solapamiento con otros horarios en el mismo quirófano y día
+    const haySolapamiento = horarios.some(horario => {
+      // Excluir el horario que se está editando
+      if (horarioIdExcluir && horario.id === horarioIdExcluir) return false;
+      
+      // Mismo quirófano y mismo día
+      if (horario.quirofano === quirofano && horario.dia === dia) {
+        const inicioExistente = horario.horaInicio;
+        const finExistente = horario.horaFin;
+        
+        // Verificar solapamiento
+        return (
+          (horaInicio >= inicioExistente && horaInicio < finExistente) ||
+          (horaFin > inicioExistente && horaFin <= finExistente) ||
+          (horaInicio <= inicioExistente && horaFin >= finExistente)
+        );
+      }
+      return false;
+    });
+
+    return !haySolapamiento;
+  };
+
+  // --- NUEVA FUNCIÓN: OBTENER HORAS BLOQUEADAS ---
+  const obtenerHorasBloqueadas = () => {
+    if (!nuevoHorario.quirofano || !nuevoHorario.duracion) return [];
+
+    const horasBloqueadas = new Set();
+    const duracion = parseInt(nuevoHorario.duracion, 10);
+    
+    // Para cada horario existente en el mismo quirófano y día, bloquear sus horas
+    horarios.forEach(horario => {
+      if (horario.quirofano === nuevoHorario.quirofano && horario.dia === nuevoHorario.dia) {
+        const inicioIndex = horasDisponibles.findIndex(h => h.valor === horario.horaInicio);
+        if (inicioIndex !== -1) {
+          const duracionExistente = Math.ceil((horariosDelDia.indexOf(horario.horaFin) - inicioIndex) / 2);
+          // Bloquear desde inicio hasta inicio + duración
+          for (let i = 0; i < duracionExistente * 2; i++) {
+            if (inicioIndex + i < horasDisponibles.length) {
+              horasBloqueadas.add(horariosDelDia[inicioIndex + i]);
+            }
+          }
+        }
+      }
+    });
+
+    return Array.from(horasBloqueadas);
+  };
+
+  // --- NUEVA FUNCIÓN: OBTENER HORAS BLOQUEADAS POR DURACIÓN ---
+  const obtenerHorasBloqueadasPorDuracion = (horaSeleccionada) => {
+    if (!horaSeleccionada || !nuevoHorario.duracion) return [];
+
+    const horasBloqueadas = [];
+    const duracion = parseInt(nuevoHorario.duracion, 10);
+    const inicioIndex = horasDisponibles.findIndex(h => h.valor === horaSeleccionada);
+    
+    if (inicioIndex !== -1) {
+      // Bloquear las siguientes horas según la duración (cada hora = 2 slots de 30 min) + 30 minutos para limpiar quirófano
+      for (let i = 1; i < duracion * 2 + 2; i++) {
+        if (inicioIndex + i < horasDisponibles.length) {
+          horasBloqueadas.push(horasDisponibles[inicioIndex + i].valor);
+        }
+      }
+    }
+
+    return horasBloqueadas;
+  };
+
   // --- MANEJADORES DE MODALES ---
   const handleOpenAgregarModal = () => { 
+    if (!esAdministrador()) {
+      alert('🚨 Solo los administradores pueden programar cirugías regulares. Use "Registrar Emergencia" para casos urgentes.');
+      return;
+    }
     setHorarioAEditar(null); 
     setNuevoHorario({ 
       dia: diaSeleccionado, 
       quirofano: '', 
       horaInicio: '', 
-      duracion: 2, 
+      duracion: 2,
       tipoCirugia: '', 
       especialista: '', 
       paciente: '' 
@@ -116,9 +222,25 @@ const Horarios = () => {
   // --- LÓGICA CRUD HORARIOS/CIRUGÍAS ---
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    if (!esAdministrador()) return; // Solo admin puede programar cirugías regulares
+    
     if (!nuevoHorario.horaInicio) { 
       alert('Selecciona hora.'); 
       return; 
+    }
+
+    // Verificar disponibilidad antes de guardar
+    const estaDisponible = verificarDisponibilidadHoras(
+      nuevoHorario.horaInicio, 
+      nuevoHorario.duracion, 
+      nuevoHorario.quirofano, 
+      nuevoHorario.dia,
+      horarioAEditar?.id
+    );
+
+    if (!estaDisponible) {
+      alert('❌ El horario seleccionado se solapa con otra cirugía en el mismo quirófano. Por favor, elige otra hora.');
+      return;
     }
     
     const horaFin = calcularHoraFin(nuevoHorario.horaInicio, nuevoHorario.duracion);
@@ -146,6 +268,8 @@ const Horarios = () => {
   };
 
   const handleStatusChangeFromList = (id, nuevoStatus) => {
+    if (!esAdministrador()) return; // Solo admin puede cambiar estados
+    
     setHorarios(currentHorarios => 
       currentHorarios.map(horario => 
         horario.id === id ? { 
@@ -165,6 +289,7 @@ const Horarios = () => {
 
   const handleAgregarQuirofano = async (e) => {
     e.preventDefault();
+    if (!esAdministrador()) return; // Solo admin puede agregar quirófanos
     
     if (!nuevoQuirofano.sala || !nuevoQuirofano.estado) {
       alert('Por favor completa todos los campos');
@@ -184,6 +309,8 @@ const Horarios = () => {
 
   // ✅ ACTUALIZAR ESTADO CON API - VERSIÓN CORREGIDA
   const handleToggleQuirofanoEstado = async (sala, estadoActual) => { 
+    if (!esAdministrador()) return; // Solo admin puede cambiar estados
+    
     let nuevoEstado;
     
     if (estadoActual === 'disponible') {
@@ -215,6 +342,8 @@ const Horarios = () => {
   };
 
   const handleEliminarQuirofano = async (sala) => { 
+    if (!esAdministrador()) return; // Solo admin puede eliminar
+    
     if (tieneCirugiasAsignadas(sala)) { 
       alert(`"${sala}" tiene cirugías asignadas. No se puede eliminar.`); 
       return; 
@@ -255,6 +384,11 @@ const Horarios = () => {
     } 
   };
 
+  // --- NUEVO MANEJADOR PARA SELECCIÓN DE HORA ---
+  const handleHoraSeleccionada = (horaValor) => {
+    setNuevoHorario(prev => ({ ...prev, horaInicio: horaValor }));
+  };
+
   const getHorarioPosicion = (ini, fin) => { 
     const i = horariosDelDia.indexOf(ini); 
     const f = horariosDelDia.indexOf(fin); 
@@ -273,13 +407,17 @@ const Horarios = () => {
     horarios.filter(h => h.dia === diaSeleccionado)
             .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
 
+  // --- EMERGENCIA: DISPONIBLE PARA TODOS ---
   const handleEmergenciaConfirm = (datos) => { 
+    // Buscar un quirófano disponible para la emergencia
+    const quirofanoDisponible = quirofanos.find(q => q.estado === 'disponible')?.sala || quirofanos[0]?.sala || 'Q1';
+    
     const nH = { 
       id: Date.now(), 
       dia: diaSeleccionado, 
-      horaInicio: '15:00', 
-      horaFin: '17:00', 
-      quirofano: quirofanos[0]?.sala || 'Q?', 
+      horaInicio: new Date().toTimeString().slice(0, 5), // Hora actual
+      horaFin: calcularHoraFin(new Date().toTimeString().slice(0, 5), 2),
+      quirofano: quirofanoDisponible, 
       cirugia: datos.tipoCirugia || 'Emergencia', 
       especialista: datos.especialista || 'Emergencias', 
       paciente: datos.paciente || 'N/A', 
@@ -288,10 +426,14 @@ const Horarios = () => {
       color: statusMap['emergencia'].color 
     }; 
     setHorarios([...horarios, nH]); 
-    alert(`🚨 Emergencia registrada`); 
+    alert(`🚨 Emergencia registrada en ${quirofanoDisponible}`); 
   };
 
   const handleEditarHorario = (h) => { 
+    if (!esAdministrador()) {
+      alert('🚨 Solo los administradores pueden editar cirugías.');
+      return;
+    }
     setHorarioAEditar(h); 
     setNuevoHorario(h); 
     setShowAgregarHorario(true); 
@@ -307,16 +449,31 @@ const Horarios = () => {
     gridTemplateColumns: `100px repeat(${quirofanos.length > 0 ? quirofanos.length : 1}, 1fr)` 
   };
 
+  // --- OBTENER HORAS BLOQUEADAS ACTUALES ---
+  const horasBloqueadasExistentes = obtenerHorasBloqueadas();
+  const horasBloqueadasPorDuracion = nuevoHorario.horaInicio ? 
+    obtenerHorasBloqueadasPorDuracion(nuevoHorario.horaInicio) : [];
+
   return (
     <div className="horarios-container">
       {/* Header */}
       <div className="horarios-header">
         <h2>Gestión de Horarios - {diaSeleccionado}</h2>
+        
         <div className="header-actions">
-          <button className="btn-quirofanos" onClick={() => setShowGestionQuirofanos(true)}>🏥 Gestionar Quirófanos</button>
-          <button className="btn-agregar-horario" onClick={handleOpenAgregarModal}>➕ Agregar Horario</button>
-          <button className="btn-tabla-horarios" onClick={() => setShowListaEdicion(true)}>✏️ Cambiar Estado</button>
-          <button className="emergency-btn-horarios" onClick={() => setShowEmergenciaModal(true)}>🚨 Registrar Emergencia</button>
+          {/* BOTONES SOLO PARA ADMIN */}
+          {esAdministrador() && (
+            <>
+              <button className="btn-quirofanos" onClick={() => setShowGestionQuirofanos(true)}>🏥 Gestionar Quirófanos</button>
+              <button className="btn-agregar-horario" onClick={handleOpenAgregarModal}>➕ Agregar Horario</button>
+              <button className="btn-tabla-horarios" onClick={() => setShowListaEdicion(true)}>✏️ Cambiar Estado</button>
+            </>
+          )}
+          
+          {/* BOTÓN EMERGENCIA PARA TODOS */}
+          <button className="emergency-btn-horarios" onClick={() => setShowEmergenciaModal(true)}>
+            🚨 Registrar Emergencia
+          </button>
         </div>
       </div>
 
@@ -411,8 +568,8 @@ const Horarios = () => {
         </div>
       </div>
 
-      {/* Modals */}
-      {showAgregarHorario && (
+      {/* Modals - Solo se muestran para administradores */}
+      {showAgregarHorario && esAdministrador() && (
         <div className="modal-overlay">
           <div className="modal-agregar-horario">
             <div className="modal-header">
@@ -451,22 +608,54 @@ const Horarios = () => {
                 <label>Hora inicio</label>
                 <span className="selected-time-display">{nuevoHorario.horaInicio || 'Selecciona'}</span>
                 <div className="time-grid-container">
-                  {horasDisponibles.map((hora) => (
-                    <button 
-                      key={hora.valor} 
-                      type="button" 
-                      className={`time-slot-button ${nuevoHorario.horaInicio === hora.valor ? 'selected' : ''}`} 
-                      value={hora.valor} 
-                      onClick={handleInputChange}
-                    >
-                      {hora.display}
-                    </button>
-                  ))}
+                  {horasDisponibles.map((hora) => {
+                    const estaBloqueadaExistente = horasBloqueadasExistentes.includes(hora.valor);
+                    const estaBloqueadaDuracion = horasBloqueadasPorDuracion.includes(hora.valor);
+                    const estaSeleccionada = nuevoHorario.horaInicio === hora.valor;
+                    const estaDisponible = !estaBloqueadaExistente && !estaBloqueadaDuracion;
+                    
+                    return (
+                      <button 
+                        key={hora.valor} 
+                        type="button" 
+                        className={`time-slot-button 
+                          ${estaSeleccionada ? 'selected' : ''} 
+                          ${!estaDisponible ? 'blocked' : ''}
+                        `} 
+                        value={hora.valor} 
+                        onClick={() => estaDisponible && handleHoraSeleccionada(hora.valor)}
+                        disabled={!estaDisponible}
+                        title={!estaDisponible ? 
+                          (estaBloqueadaExistente ? 
+                            'Hora ocupada por otra cirugía' : 
+                            'Hora bloqueada por duración seleccionada') : 
+                          `Seleccionar ${hora.display}`
+                        }
+                      >
+                        {hora.display}
+                        {!estaDisponible && ' 🔒'}
+                      </button>
+                    );
+                  })}
                 </div>
+                {nuevoHorario.horaInicio && (
+                  <div className="duracion-info">
+                    <small>
+                      ⏱️ La cirugía ocupará desde <strong>{nuevoHorario.horaInicio}</strong> hasta{' '}
+                      <strong>{calcularHoraFin(nuevoHorario.horaInicio, nuevoHorario.duracion)}</strong>{' '}
+                      ({nuevoHorario.duracion} horas)
+                    </small>
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label>Duración</label>
-                <select name="duracion" value={nuevoHorario.duracion} onChange={handleInputChange} required>
+                <select 
+                  name="duracion" 
+                  value={nuevoHorario.duracion} 
+                  onChange={handleInputChange} 
+                  required
+                >
                   {[2,3,4,5,6,7].map(h => (
                     <option key={h} value={h}>{h} h</option>
                   ))}
@@ -512,7 +701,8 @@ const Horarios = () => {
         </div>
       )}
 
-      {showGestionQuirofanos && ( 
+      {/* ... (el resto de los modales se mantiene igual) */}
+      {showGestionQuirofanos && esAdministrador() && ( 
         <div className="modal-overlay">
           <div className="modal-quirofanos">
             <div className="modal-header">
@@ -604,7 +794,7 @@ const Horarios = () => {
         </div>
       )}
 
-      {showListaEdicion && (
+      {showListaEdicion && esAdministrador() && (
         <div className="modal-overlay">
           <div className="modal-lista-edicion">
             <div className="modal-header">
@@ -646,6 +836,7 @@ const Horarios = () => {
         </div>
       )}
 
+      {/* Modal de Detalle - Disponible para todos */}
       {showDetalleModal && detalleHorario && (
         <div className="modal-overlay">
           <div className="modal-detalle-horario">
@@ -694,15 +885,17 @@ const Horarios = () => {
               </div>
             </div>
             <div className="modal-actions-detalle">
-              <button 
-                onClick={() => { 
-                  setShowDetalleModal(false); 
-                  handleEditarHorario(detalleHorario); 
-                }} 
-                className="btn-guardar"
-              >
-                ✏️ Editar
-              </button>
+              {esAdministrador() && (
+                <button 
+                  onClick={() => { 
+                    setShowDetalleModal(false); 
+                    handleEditarHorario(detalleHorario); 
+                  }} 
+                  className="btn-guardar"
+                >
+                  ✏️ Editar
+                </button>
+              )}
               <button onClick={() => setShowDetalleModal(false)} className="btn-cancelar">
                 Cerrar
               </button>
@@ -711,6 +904,7 @@ const Horarios = () => {
         </div>
       )}
 
+      {/* Modal de Emergencia - DISPONIBLE PARA TODOS */}
       <EmergenciaModal 
         isOpen={showEmergenciaModal} 
         onClose={() => setShowEmergenciaModal(false)} 

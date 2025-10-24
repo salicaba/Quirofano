@@ -391,7 +391,7 @@ const Especialistas = () => {
                       <h4>{medico.nombre} {medico.apellido_paterno} {medico.apellido_materno}</h4>
                       <p className="especialista-datos">
                         <strong>ID:</strong> {medico.id_medicos} | <strong>Cédula:</strong> {medico.cedula_profecional} <br/>
-                        <strong>Rol:</strong> {medico.rol} | <strong>Especialidad:</strong> {medico.especialidad} <br/>
+                        {/*<strong>Rol:</strong> {medico.rol} | <strong>Especialidad:</strong> {medico.especialidad} <br/>*/}
                         <strong>Teléfono:</strong> {medico.telefono || 'N/A'}
                       </p>
                     </div>

@@ -18,7 +18,7 @@ const Cirugia = {
     const query = `
       INSERT INTO cirugias (
         id_expediente, fecha, diagnostico_pre, procedimiento, 
-        id_quirófano, id_equipomedico, estado, diagnostico_post, resultado, creado_por
+        id_quirofano, id_equipomedico, estado, diagnostico_post, resultado, creado_por
       ) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
       RETURNING *
@@ -59,7 +59,7 @@ const Cirugia = {
       FROM cirugias ci 
       LEFT JOIN expedientes ex ON ci.id_expediente = ex.id_expediente
       LEFT JOIN pacientes p ON ex.id_paciente = p.id_paciente
-      LEFT JOIN quirofanos q ON ci."id_quirófano" = q.id_quirofano -- Asegúrate que el nombre de columna id_quirofano sea correcto
+      LEFT JOIN quirofanos q ON ci.id_quirofano = q.id_quirofano -- Asegúrate que el nombre de columna id_quirofano sea correcto
       LEFT JOIN equipo_medico eq ON ci.id_equipomedico = eq.id_equipomedico
       ORDER BY ci.fecha DESC, ci.id_cirugia DESC;
     `;
@@ -106,7 +106,7 @@ const Cirugia = {
     if (fechaCirugia !== undefined) { fields.push(`fecha = $${queryIndex++}`); values.push(fechaCirugia); }
     if (diagnostico_pre !== undefined) { fields.push(`diagnostico_pre = $${queryIndex++}`); values.push(diagnostico_pre); }
     if (procedimiento !== undefined) { fields.push(`procedimiento = $${queryIndex++}`); values.push(procedimiento); }
-    if (id_quirófano !== undefined) { fields.push(`id_quirófano = $${queryIndex++}`); values.push(id_quirófano); }
+    if (id_quirofano !== undefined) { fields.push(`id_quirofano = $${queryIndex++}`); values.push(id_quirofano); }
     if (id_equipomedico !== undefined) { fields.push(`id_equipomedico = $${queryIndex++}`); values.push(id_equipomedico); }
     if (estado !== undefined) { fields.push(`estado = $${queryIndex++}`); values.push(estado); }
     if (diagnostico_post !== undefined) { fields.push(`diagnostico_post = $${queryIndex++}`); values.push(diagnostico_post); }

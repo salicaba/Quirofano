@@ -108,6 +108,7 @@ const Pacientes = () => {
       
       const listaPacientes = Array.isArray(response.data) ? response.data : [];
       setPacientes(listaPacientes);
+      console.log(listaPacientes);
       setError(null);
     } catch (err) {
       setError('Error al cargar los pacientes.');
@@ -438,7 +439,7 @@ const Pacientes = () => {
             <div className="paciente-datos">
               <div className="dato-item">
                 <label>Fecha de Nacimiento</label>
-                <span>{pacienteSeleccionado.fecha_nacimiento || 'No especificada'}</span>
+                <span className="paciente-fecha-nacimiento"> {pacienteSeleccionado.fecha_nacimiento ? pacienteSeleccionado.fecha_nacimiento.split('T')[0] : 'N/A'} </span>
               </div>
               <div className="dato-item">
                 <label>Sexo</label>
@@ -633,8 +634,9 @@ const Pacientes = () => {
                   <div className="paciente-info-compacta">
                     <h4>{paciente.nombre} {paciente.apellido}</h4>
                     <div className="paciente-detalles-compactos">
-                      <span className="paciente-sexo">| {paciente.sexo} |</span>
+                      <span className="paciente-sexo">| {paciente.sexo} |</span>                      
                       <span className="paciente-tipo-sangre"> {paciente.tipo_sangre} |</span>
+                      <span className="paciente-fecha-nacimiento">{paciente.fecha_nacimiento ? paciente.fecha_nacimiento.split('T')[0] : 'N/A'} |</span>
                       {paciente.numero_expediente && (
                         <span className="paciente-expediente"> {paciente.numero_expediente} |</span>
                       )}

@@ -21,7 +21,6 @@ app.use('/api/equipos', require('./routes/equipoMedicoRoutes'));
 app.use('/api/cirugias', require('./routes/cirugiaRoutes'));
 
 
-
 app.listen(PORT, () => {
     console.log(`Servidor ABMODEL corriendo en el puerto ${PORT}`);
 });

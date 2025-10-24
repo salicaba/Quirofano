@@ -3,9 +3,9 @@ require('dotenv').config();
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || '172.29.112.1',
-  database: process.env.DB_DATABASE || 'quirurjicofinal(ojala)',
-  password: process.env.DB_PASSWORD || '28112005',
+  host: process.env.DB_HOST || '172.24.240.1 ',
+  database: process.env.DB_DATABASE || 'quirofano',
+  password: process.env.DB_PASSWORD || 'Iol23122005%',
   port: process.env.DB_PORT  || '5432',
   // Opciones adicionales para PostgreSQL
   max: 20,

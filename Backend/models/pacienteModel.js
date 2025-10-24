@@ -27,9 +27,13 @@ const Paciente = {
       SELECT 
         pa.id_paciente,
         pa.nombre,
+        pa.sexo,
+        pa.fecha_nacimiento,
+        pa.tipo_sangre,
         pa.apellido,
         e.id_expediente,
-        e.numero_expediente
+        e.numero_expediente,
+        e.procedencia
       FROM pacientes pa 
       INNER JOIN expedientes e ON pa.id_paciente = e.id_paciente
       WHERE pa.activo = true
