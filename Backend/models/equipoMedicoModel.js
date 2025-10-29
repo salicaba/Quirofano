@@ -3,12 +3,12 @@ const pool = require('../config/db');
 const EquipoMedico = {
 
   async create(equipoData) {
-    const { nombre, id_medico } = equipoData;
-    const query = `
-      INSERT INTO equipo_medico (nombre, id_medico) 
-      VALUES ($1, $2) 
-      RETURNING *
-    `;
+    const { nombre, id_medico } = equipoData;
+    const query = `
+      INSERT INTO equipo_medico (nombre, id_medico) 
+      VALUES ($1, $2) 
+      RETURNING *
+    `;
     try {
       const { rows } = await pool.query(query, [nombre, id_medico]);
       return rows[0];

@@ -169,3 +169,81 @@
   .select-estado-lista { margin-left: 0; width: 100%; }
   .detalle-content { grid-template-columns: 1fr; }
 }
+
+/* Añade esto al final de tu Horarios.css */
+
+/* Ajustes para intervalos de 30 minutos */
+.calendario-body {
+  height: 1400px !important; /* 48 slots * 29px = 1392px */
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.hora-slot {
+  height: 29px !important; /* Mitad de 58px para 30 minutos */
+  font-size: 11px !important;
+}
+
+.celda-horario {
+  height: 29px !important; /* Mitad de 58px para 30 minutos */
+}
+
+.hora-texto {
+  font-size: 10px !important;
+}
+
+/* Ajustar altura de bloques de cirugía */
+.cirugia-block {
+  padding: 4px 6px !important;
+}
+
+.cirugia-titulo {
+  font-size: 10px !important;
+  margin-bottom: 2px !important;
+}
+
+.cirugia-especialista,
+.cirugia-paciente,
+.cirugia-horario {
+  font-size: 8px !important;
+  margin-bottom: 1px !important;
+}
+
+/* Mejorar visualización de horas con +1 */
+.hora-slot:nth-child(odd) {
+  background: #f8f9fa;
+}
+
+.hora-slot:nth-child(even) {
+  background: #ffffff;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .calendario-body {
+    height: 1200px !important;
+  }
+  
+  .hora-slot {
+    height: 25px !important;
+    font-size: 9px !important;
+  }
+  
+  .celda-horario {
+    height: 25px !important;
+  }
+  
+  .cirugia-block {
+    padding: 2px 4px !important;
+  }
+  
+  .cirugia-titulo {
+    font-size: 9px !important;
+  }
+  
+  .cirugia-especialista,
+  .cirugia-paciente,
+  .cirugia-horario {
+    font-size: 7px !important;
+  }
+}
